@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Apni Dukan Admin Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="admin-body">
+  <header class="admin-header">
+    <div class="admin-brand">
+      <div class="logo-mark admin-logo-mark">
+        <svg viewBox="0 0 160 120" class="logo-svg" aria-hidden="true">
+          <defs>
+            <linearGradient id="goldGradAdmin" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#f4d86c" />
+              <stop offset="100%" stop-color="#d4af37" />
+            </linearGradient>
+          </defs>
+          <g fill="none" stroke="url(#goldGradAdmin)" stroke-width="10">
+            <path d="M24 102 L24 18 L74 18" />
+            <path d="M74 18 L100 18 L100 102" />
+            <path d="M100 18 A32 32 0 0 1 132 50 L132 70 A32 32 0 0 1 100 102" />
+          </g>
+          <circle cx="116" cy="55" r="18" fill="none" stroke="url(#goldGradAdmin)" stroke-width="6" />
+          <line x1="116" y1="55" x2="116" y2="42" stroke="url(#goldGradAdmin)" stroke-width="4" />
+          <line x1="116" y1="55" x2="130" y2="55" stroke="url(#goldGradAdmin)" stroke-width="4" />
+        </svg>
+      </div>
+      <div>
+        <p class="eyebrow">Admin Portal</p>
+        <h1>Apni Dukan Store Manager</h1>
+      </div>
+    </div>
+    <a class="button button-ghost" href="index.html">View Storefront</a>
+  </header>
+
+  <main class="admin-main">
+    <section class="admin-panel">
+      <div class="admin-section">
+        <h2>Store Settings</h2>
+        <form id="settingsForm" class="form-grid">
+          <label>
+            WhatsApp Number
+            <input type="text" id="whatsappNumber" placeholder="919999999999" />
+          </label>
+          <label>
+            Support Email
+            <input type="email" id="supportEmail" placeholder="support@apnidukan.com" />
+          </label>
+          <label>
+            Phone Label
+            <input type="text" id="supportPhone" placeholder="+91 99999 99999" />
+          </label>
+          <label>
+            Instagram URL
+            <input type="url" id="instagramUrl" placeholder="https://instagram.com/apnidukan" />
+          </label>
+          <label>
+            Theme pack
+            <select id="themePack">
+              <option value="default">Classic Gold</option>
+              <option value="midnight">Midnight Luxe</option>
+              <option value="ivory">Ivory Premium</option>
+              <option value="noir">Noir Elegance</option>
+            </select>
+          </label>
+          <label>
+            Accent color
+            <input type="color" id="accentColor" value="#d4af37" />
+          </label>
+          <label>
+            Header color
+            <input type="color" id="headerColor" value="#05070f" />
+          </label>
+          <label>
+            Surface color
+            <input type="color" id="surfaceColor" value="rgba(255,255,255,0.05)" />
+          </label>
+          <label>
+            Page background color
+            <input type="color" id="backgroundColor" value="#050505" />
+          </label>
+          <label>
+            Store logo image
+            <input type="file" id="logoUpload" accept="image/*" />
+          </label>
+          <div class="logo-preview">
+            <p>Logo preview</p>
+            <img id="logoPreview" src="" alt="Logo preview" />
+          </div>
+          <label class="checkbox-label">
+            <input type="checkbox" id="welcomeEnabled" />
+            Enable welcome banner
+          </label>
+          <label>
+            Welcome message
+            <textarea id="welcomeMessage" rows="2" placeholder="Happy Diwali from Apni Dukan!"></textarea>
+          </label>
+          <label>
+            Welcome media (image or video)
+            <input type="file" id="welcomeMediaUpload" accept="image/*,video/*" />
+          </label>
+          <div class="welcome-preview">
+            <p>Media preview</p>
+            <div id="welcomeMediaPreview" class="welcome-media-preview"></div>
+          </div>
+          <label>
+            Store Tagline
+            <input type="text" id="storeTagline" placeholder="Luxury curated for every style" />
+          </label>
+          <label>
+            Brand text style
+            <select id="brandTextStyle">
+              <option value="classic">Classic luxury</option>
+              <option value="glam">Glam gold</option>
+              <option value="modern">Modern luxe</option>
+            </select>
+          </label>
+          <button type="button" class="button button-primary" id="saveSettings">Save Settings</button>
+        </form>
+      </div>
+
+      <div class="admin-section">
+        <h2>Admin account</h2>
+        <form id="adminAccountForm" class="form-grid">
+          <label>
+            New admin username
+            <input type="text" id="newAdminUsername" placeholder="madaag1" />
+          </label>
+          <label>
+            Current password
+            <input type="password" id="currentAdminPassword" placeholder="Current password" />
+          </label>
+          <label>
+            New password
+            <input type="password" id="newAdminPassword" placeholder="New password" />
+          </label>
+          <button type="button" class="button button-primary" id="saveAdminAccount">Update admin credentials</button>
+        </form>
+      </div>
+
+      <div class="admin-section">
+        <h2>Products</h2>
+        <form id="productForm" class="form-grid">
+          <label>
+            Title
+            <input type="text" id="productTitle" placeholder="Premium Leather Watch" required />
+          </label>
+          <label>
+            Audience
+            <select id="productAudience">
+              <option value="Men">Men</option>
+              <option value="Women">Women</option>
+              <option value="Kids">Kids</option>
+              <option value="Unisex">Unisex</option>
+            </select>
+          </label>
+          <label>
+            Category
+            <select id="productCategory">
+              <option value="Clothing">Clothing</option>
+              <option value="Footwear">Footwear</option>
+              <option value="Watches">Watches</option>
+              <option value="Sunglasses">Sunglasses</option>
+              <option value="Perfume">Perfume</option>
+              <option value="Belts">Belts</option>
+              <option value="Wallets">Wallets</option>
+              <option value="Handbags">Handbags</option>
+              <option value="Tie">Tie</option>
+              <option value="Brooch">Brooch</option>
+              <option value="Accessories">Accessories</option>
+              <option value="Home">Home</option>
+              <option value="Other">Other</option>
+            </select>
+          </label>
+          <label>
+            Brand
+            <input type="text" id="productBrand" placeholder="e.g. Nike" />
+          </label>
+          <label>
+            Size
+            <input type="text" id="productSize" placeholder="9 / S / M / L" />
+          </label>
+          <label>
+            Sale price (₹)
+            <input type="number" id="productPrice" placeholder="1499" required />
+          </label>
+          <label>
+            Market Price (₹)
+            <input type="number" id="productMarketPrice" placeholder="2499" required />
+          </label>
+          <label>
+            Quantity Available
+            <input type="number" id="productQty" placeholder="25" required />
+          </label>
+          <label>
+            Product image
+            <input type="file" id="productImageUpload" accept="image/*" />
+          </label>
+          <label>
+            Image URL (optional)
+            <input type="url" id="productImage" placeholder="https://via.placeholder.com/400" />
+          </label>
+          <label class="span-full">
+            Description
+            <textarea id="productDescription" rows="3" placeholder="Short product description"></textarea>
+          </label>
+          <div class="button-row span-full">
+            <button type="button" class="button button-primary" id="saveProduct">Add / Update Product</button>
+            <button type="button" class="button button-ghost" id="clearProduct">Clear</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="admin-section">
+        <h2>Coupons</h2>
+        <form id="couponForm" class="form-grid">
+          <label>
+            Coupon Code
+            <input type="text" id="couponCode" placeholder="APNIDUKAN20" />
+          </label>
+          <label>
+            Discount (%)
+            <input type="number" id="couponDiscount" placeholder="20" />
+          </label>
+          <div class="button-row span-full">
+            <button type="button" class="button button-primary" id="generateCoupon">Generate Coupon</button>
+          </div>
+        </form>
+        <div class="coupon-list" id="couponList"></div>
+      </div>
+
+      <div class="admin-section">
+        <h2>Customer Reviews</h2>
+        <form id="testimonialForm" class="form-grid">
+          <label>
+            Customer name
+            <input type="text" id="testimonialName" placeholder="Priya" required />
+          </label>
+          <label>
+            Location
+            <input type="text" id="testimonialLocation" placeholder="Bengaluru" required />
+          </label>
+          <label>
+            Rating
+            <select id="testimonialRating">
+              <option value="5">★★★★★</option>
+              <option value="4">★★★★☆</option>
+              <option value="3">★★★☆☆</option>
+              <option value="2">★★☆☆☆</option>
+              <option value="1">★☆☆☆☆</option>
+            </select>
+          </label>
+          <label>
+            Avatar image
+            <input type="file" id="testimonialAvatarUpload" accept="image/*" />
+          </label>
+          <label>
+            Review image
+            <input type="file" id="testimonialImageUpload" accept="image/*" />
+          </label>
+          <label class="span-full">
+            Review text
+            <textarea id="testimonialQuote" rows="4" placeholder="Customer feedback goes here" required></textarea>
+          </label>
+          <div class="button-row span-full">
+            <button type="button" class="button button-primary" id="saveTestimonial">Add / Update Review</button>
+            <button type="button" class="button button-ghost" id="clearTestimonial">Clear</button>
+          </div>
+        </form>
+        <div id="testimonialList" class="product-list"></div>
+      </div>
+
+      <div class="admin-section">
+        <h2>Review moderation</h2>
+        <div class="review-controls">
+          <button type="button" class="button button-secondary" id="showAllReviews">All reviews</button>
+          <button type="button" class="button button-secondary" id="showApprovedReviews">Approved</button>
+          <button type="button" class="button button-secondary" id="showPendingReviews">Pending</button>
+          <button type="button" class="button button-secondary" id="showRejectedReviews">Rejected</button>
+        </div>
+      </div>
+
+      <div class="admin-section">
+        <h2>Product Catalog</h2>
+        <div id="productList" class="product-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="admin-footer">
+    <p>Store data is saved locally in your browser. Open this page anytime to update products, discount coupons, social links, and support information.</p>
+  </footer>
+
+  <script src="admin.js"></script>
+</body>
+</html>
