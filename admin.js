@@ -471,19 +471,20 @@ function setupEvents() {
     updateWelcomePreview(fileData);
   });
 
-  function updateWelcomePreview(src) {
-    if (!welcomeMediaPreview) return;
-    welcomeMediaPreview.dataset.media = src || '';
-    welcomeMediaPreview.innerHTML = '';
-    if (!src) return;
-    if (src.startsWith('data:video')) {
-      welcomeMediaPreview.innerHTML = `<video controls src="${src}"></video>`;
-    } else {
-      welcomeMediaPreview.innerHTML = `<img src="${src}" alt="Welcome media preview" />`;
-    }
+function updateWelcomePreview(src) {
+  const welcomeMediaPreview = document.getElementById('welcomeMediaPreview');
+  if (!welcomeMediaPreview) return;
+  welcomeMediaPreview.dataset.media = src || '';
+  welcomeMediaPreview.innerHTML = '';
+  if (!src) return;
+  if (src.startsWith('data:video')) {
+    welcomeMediaPreview.innerHTML = `<video controls src="${src}"></video>`;
+  } else {
+    welcomeMediaPreview.innerHTML = `<img src="${src}" alt="Welcome media preview" />`;
   }
+}
 
-  updateWelcomePreview('');
+  updateWelcomePreview('');  
 
   document.getElementById('saveTestimonial').addEventListener('click', async () => {
     const name = document.getElementById('testimonialName').value.trim();
