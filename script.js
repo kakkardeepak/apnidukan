@@ -257,6 +257,14 @@ function applyStoreSettings() {
   if (floatWhatsApp) {
     floatWhatsApp.href = `https://wa.me/${settings.whatsappNumber}`;
   }
+  const footerWhatsAppLink = document.querySelector('.footer-card a[href*="wa.me"]');
+  if (footerWhatsAppLink) {
+    footerWhatsAppLink.href = `https://wa.me/${settings.whatsappNumber}`;
+  }
+  const supportWhatsAppLink = document.querySelector('.support-panel .button-secondary');
+  if (supportWhatsAppLink) {
+    supportWhatsAppLink.href = `https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent('Hello Apni Dukan, I need support.')}`;
+  }
   const emailText = document.querySelector('.support-panel p:nth-of-type(2)');
   if (emailText) emailText.textContent = `Email: ${settings.supportEmail}`;
   const phoneText = document.querySelector('.support-panel p:nth-of-type(3)');
