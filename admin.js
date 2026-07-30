@@ -237,6 +237,27 @@ function renderCoupons() {
   `).join('');
 }
 
+function updateLogoPreview(src) {
+  const preview = document.getElementById('logoPreview');
+  if (!preview) return;
+  preview.src = src || '';
+  preview.dataset.source = src ? 'file' : '';
+  preview.style.display = src ? 'block' : 'none';
+}
+
+function updateWelcomePreview(src) {
+  const welcomeMediaPreview = document.getElementById('welcomeMediaPreview');
+  if (!welcomeMediaPreview) return;
+  welcomeMediaPreview.dataset.media = src || '';
+  welcomeMediaPreview.innerHTML = '';
+  if (!src) return;
+  if (src.startsWith('data:video')) {
+    welcomeMediaPreview.innerHTML = `<video controls src="${src}"></video>`;
+  } else {
+    welcomeMediaPreview.innerHTML = `<img src="${src}" alt="Welcome media preview" />`;
+  }
+}
+
 function populateSettings() {
   const settings = getSettings();
   const adminCred = getAdminCredentials();
@@ -277,14 +298,6 @@ function applyAdminTheme(settings) {
   }
 }
 
-function updateLogoPreview(src) {
-  const preview = document.getElementById('logoPreview');
-  if (!preview) return;
-  preview.src = src || '';
-  preview.dataset.source = src ? 'file' : '';
-  preview.style.display = src ? 'block' : 'none';
-}
-
 function clearProductForm() {
   document.getElementById('productTitle').value = '';
   document.getElementById('productDescription').value = '';
@@ -310,6 +323,16 @@ function showToast(message) {
   toast.textContent = message;
   document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 2800);
+}
+
+function readFileAsDataUrl(input) {
+  return new Promise(resolve => {
+    const file = input.files && input.files[0];
+    if (!file) return resolve('');
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result || '');
+    reader.readAsDataURL(file);
+  });
 }
 
 function setupEvents() {
@@ -379,6 +402,11 @@ function setupEvents() {
     document.getElementById('newAdminPassword').value = '';
     showToast('Admin credentials updated successfully.');
   });
+
+  const productImageUpload = document.getElementById('productImageUpload');
+  const avatarUploadInput = document.getElementById('testimonialAvatarUpload');
+  const imageUploadInput = document.getElementById('testimonialImageUpload');
+  const welcomeMediaUpload = document.getElementById('welcomeMediaUpload');
 
   document.getElementById('saveProduct').addEventListener('click', async () => {
     const title = document.getElementById('productTitle').value.trim();
@@ -450,41 +478,10 @@ function setupEvents() {
     showToast('Coupon generated successfully.');
   });
 
-  const productImageUpload = document.getElementById('productImageUpload');
-  const avatarUploadInput = document.getElementById('testimonialAvatarUpload');
-  const imageUploadInput = document.getElementById('testimonialImageUpload');
-  const welcomeMediaUpload = document.getElementById('welcomeMediaUpload');
-  const welcomeMediaPreview = document.getElementById('welcomeMediaPreview');
-
-  function readFileAsDataUrl(input) {
-    return new Promise(resolve => {
-      const file = input.files && input.files[0];
-      if (!file) return resolve('');
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result || '');
-      reader.readAsDataURL(file);
-    });
-  }
-
   welcomeMediaUpload.addEventListener('change', async event => {
     const fileData = await readFileAsDataUrl(event.target);
     updateWelcomePreview(fileData);
   });
-
-function updateWelcomePreview(src) {
-  const welcomeMediaPreview = document.getElementById('welcomeMediaPreview');
-  if (!welcomeMediaPreview) return;
-  welcomeMediaPreview.dataset.media = src || '';
-  welcomeMediaPreview.innerHTML = '';
-  if (!src) return;
-  if (src.startsWith('data:video')) {
-    welcomeMediaPreview.innerHTML = `<video controls src="${src}"></video>`;
-  } else {
-    welcomeMediaPreview.innerHTML = `<img src="${src}" alt="Welcome media preview" />`;
-  }
-}
-
-  updateWelcomePreview('');  
 
   document.getElementById('saveTestimonial').addEventListener('click', async () => {
     const name = document.getElementById('testimonialName').value.trim();
