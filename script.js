@@ -511,6 +511,14 @@ function showTemporaryToast(message) {
   setTimeout(() => toast.remove(), 2500);
 }
 
+function withTimeout(promise, timeoutMs, timeoutMessage) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
 function updateAuthMode(mode) {
   const tabs = document.querySelectorAll('.tab-button');
   const rows = document.querySelectorAll('.form-row');
@@ -586,11 +594,17 @@ async function handleAdminLogin() {
     }
     button.disabled = true;
     button.textContent = 'Signing in...';
-    await signInWithEmailAndPassword(auth, ADMIN_AUTH_EMAIL, password);
+    await withTimeout(
+      signInWithEmailAndPassword(auth, ADMIN_AUTH_EMAIL, password),
+      15000,
+      'Admin sign-in timed out. Check your internet connection and try again.'
+    );
     window.location.href = 'admin.html';
   } catch (error) {
     console.error('Admin login failed:', error);
-    showTemporaryToast('Admin login failed. Check username/password.');
+    showTemporaryToast(error.message.includes('timed out')
+      ? error.message
+      : 'Admin login failed. Check username/password.');
   } finally {
     button.disabled = false;
     button.textContent = 'Admin login';
