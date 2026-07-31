@@ -131,7 +131,7 @@ button, input, select, textarea {
 .search-bar {
   display: flex;
   align-items: center;
-  width: 440px;
+  width: 520px;
   max-width: 100%;
   background: rgba(255,255,255,.08);
   border: 1px solid rgba(255,255,255,.12);
@@ -863,13 +863,31 @@ body {
 }
 
 .button-instagram {
-  background: linear-gradient(135deg, #feda75 0%, #fa7e1e 28%, #d62976 54%, #962fbf 82%, #4f5bd5 100%);
-  border-color: transparent;
+  background: rgba(9, 14, 26, 0.92);
+  border-color: rgba(212, 175, 55, 0.25);
+}
+
+.button-instagram:hover {
+  border-color: rgba(214, 41, 118, 0.55);
+  box-shadow: 0 30px 90px rgba(0,0,0,.28), 0 0 0 1px rgba(214, 41, 118, 0.25);
+}
+
+.button-instagram .icon {
+  color: #f4d86c;
 }
 
 .button-whatsapp {
-  background: linear-gradient(135deg, #25d366 0%, #1da851 55%, #128c7e 100%);
-  border-color: transparent;
+  background: rgba(9, 14, 26, 0.92);
+  border-color: rgba(212, 175, 55, 0.25);
+}
+
+.button-whatsapp:hover {
+  border-color: rgba(37, 211, 102, 0.55);
+  box-shadow: 0 30px 90px rgba(0,0,0,.28), 0 0 0 1px rgba(37, 211, 102, 0.25);
+}
+
+.button-whatsapp .icon {
+  color: #f4d86c;
 }
 
 .button-home {
