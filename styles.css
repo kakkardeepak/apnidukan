@@ -33,6 +33,10 @@
 .button,
 .button-ghost,
 .toast-message {
+  background: var(--surface);
+}
+
+.toast-message {
   position: fixed;
   left: 50%;
   bottom: 24px;
