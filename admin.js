@@ -1,4 +1,4 @@
-import { db, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc } from './firebase-config.js';
+import { db, auth, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, onAuthStateChanged, ADMIN_AUTH_EMAIL } from './firebase-config.js';
 
 const defaultTestimonials = [
   {
@@ -75,7 +75,6 @@ const defaultProducts = [
 ];
 
 const settingsDocRef = doc(db, 'config', 'settings');
-const adminCredDocRef = doc(db, 'config', 'adminCredentials');
 
 const defaultSettings = {
   whatsappNumber: '919999999999',
@@ -152,20 +151,6 @@ async function addCoupon(code, discount) {
 
 async function deleteCouponByCode(code) {
   await deleteDoc(doc(db, 'coupons', code));
-}
-
-async function getAdminCredentials() {
-  const snap = await getDoc(adminCredDocRef);
-  const defaults = { username: 'madaag1', password: '9710800046' };
-  if (!snap.exists()) {
-    await setDoc(adminCredDocRef, defaults);
-    return defaults;
-  }
-  return { ...defaults, ...snap.data() };
-}
-
-async function saveAdminCredentials(credentials) {
-  await setDoc(adminCredDocRef, credentials, { merge: true });
 }
 
 let currentReviewFilter = 'all';
@@ -304,7 +289,6 @@ function updateWelcomePreview(src) {
 
 async function populateSettings() {
   const settings = await getSettings();
-  const adminCred = await getAdminCredentials();
   document.getElementById('whatsappNumber').value = settings.whatsappNumber;
   document.getElementById('supportEmail').value = settings.supportEmail;
   document.getElementById('supportPhone').value = settings.supportPhone;
@@ -318,7 +302,6 @@ async function populateSettings() {
   document.getElementById('welcomeMessage').value = settings.welcomeMessage || '';
   document.getElementById('storeTagline').value = settings.storeTagline;
   document.getElementById('brandTextStyle').value = settings.brandTextStyle || 'classic';
-  document.getElementById('newAdminUsername').value = adminCred.username;
   updateLogoPreview(settings.logoData || '');
   updateWelcomePreview(settings.welcomeMedia || '');
   applyAdminTheme(settings);
@@ -480,33 +463,6 @@ function setupEvents() {
     } catch (error) {
       showToast(error.message || 'Could not process that logo image.');
     }
-  });
-
-  document.getElementById('saveAdminAccount').addEventListener('click', async () => {
-    const currentPassword = document.getElementById('currentAdminPassword').value.trim();
-    const newUsername = document.getElementById('newAdminUsername').value.trim();
-    const newPassword = document.getElementById('newAdminPassword').value.trim();
-    const credentials = await getAdminCredentials();
-    if (!currentPassword) {
-      showToast('Enter your current admin password to update credentials.');
-      return;
-    }
-    if (currentPassword !== credentials.password) {
-      showToast('Current admin password is incorrect.');
-      return;
-    }
-    if (!newUsername && !newPassword) {
-      showToast('Enter a new admin username or password.');
-      return;
-    }
-    const updated = {
-      username: newUsername || credentials.username,
-      password: newPassword || credentials.password
-    };
-    await saveAdminCredentials(updated);
-    document.getElementById('currentAdminPassword').value = '';
-    document.getElementById('newAdminPassword').value = '';
-    showToast('✅ Saved to Firebase — admin credentials updated.');
   });
 
   const productImageUpload = document.getElementById('productImageUpload');
@@ -718,11 +674,26 @@ function setupEvents() {
 }
 
 async function initializeAdmin() {
+  const user = await new Promise(resolve => {
+    const unsubscribe = onAuthStateChanged(auth, currentUser => {
+      unsubscribe();
+      resolve(currentUser);
+    });
+  });
+  if (!user || user.email !== ADMIN_AUTH_EMAIL) {
+    window.location.replace('index.html#login');
+    return;
+  }
   setupEvents();
-  await populateSettings();
-  await renderProductList();
-  await renderCoupons();
-  await renderTestimonialList();
+  try {
+    await populateSettings();
+    await renderProductList();
+    await renderCoupons();
+    await renderTestimonialList();
+  } catch (error) {
+    console.error('Admin data could not be loaded:', error);
+    showToast('Firebase denied access. Configure Firestore rules, then reload this page.');
+  }
 }
 
 initializeAdmin();

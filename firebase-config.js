@@ -2,6 +2,14 @@
 // Loaded as an ES module by both admin.js and script.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
+  getAuth,
+  GoogleAuthProvider,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
   getFirestore,
   collection,
   doc,
@@ -25,6 +33,13 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
+export const auth = getAuth(app);
+
+// Firebase Authentication uses an email internally. The storefront maps the
+// case-insensitive admin username "Madaag1" to this private sign-in address.
+// Do not expose or store the admin password in source code or Firestore.
+export const ADMIN_USERNAME = 'madaag1';
+export const ADMIN_AUTH_EMAIL = 'madaag1@admin.apnidukan.com';
 export {
   collection,
   doc,
@@ -33,5 +48,10 @@ export {
   setDoc,
   addDoc,
   updateDoc,
-  deleteDoc
+  deleteDoc,
+  GoogleAuthProvider,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  onAuthStateChanged
 };

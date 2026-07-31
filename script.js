@@ -1,4 +1,8 @@
-import { db, collection, doc, getDoc, getDocs, setDoc, addDoc } from './firebase-config.js';
+import {
+  db, auth, collection, doc, getDoc, getDocs, setDoc,
+  GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  signInWithPopup, ADMIN_USERNAME, ADMIN_AUTH_EMAIL
+} from './firebase-config.js';
 
 const defaultProducts = [
   {
@@ -75,7 +79,6 @@ const defaultTestimonials = [
 ];
 
 const settingsDocRef = doc(db, 'config', 'settings');
-const adminCredDocRef = doc(db, 'config', 'adminCredentials');
 
 const defaultSettings = {
   whatsappNumber: '919999999999',
@@ -92,73 +95,39 @@ const defaultSettings = {
   brandTextStyle: 'classic'
 };
 
-async function ensureProductsSeeded() {
-  const snapshot = await getDocs(collection(db, 'products'));
-  if (!snapshot.empty) return;
-  let order = defaultProducts.length;
-  for (const product of defaultProducts) {
-    const { id, ...rest } = product;
-    await setDoc(doc(db, 'products', id), { ...rest, createdAt: order });
-    order -= 1;
-  }
-}
-
 async function loadProducts() {
-  await ensureProductsSeeded();
-  const snapshot = await getDocs(collection(db, 'products'));
-  const products = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-  products.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-  return products;
+  try {
+    const snapshot = await getDocs(collection(db, 'products'));
+    if (snapshot.empty) return [...defaultProducts];
+    return snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  } catch (error) {
+    console.warn('Using built-in products because Firestore is unavailable.', error);
+    return [...defaultProducts];
+  }
 }
 
 async function loadSettings() {
-  const snap = await getDoc(settingsDocRef);
-  if (!snap.exists()) {
-    await setDoc(settingsDocRef, defaultSettings);
+  try {
+    const snap = await getDoc(settingsDocRef);
+    return snap.exists() ? { ...defaultSettings, ...snap.data() } : { ...defaultSettings };
+  } catch (error) {
+    console.warn('Using built-in settings because Firestore is unavailable.', error);
     return { ...defaultSettings };
-  }
-  return { ...defaultSettings, ...snap.data() };
-}
-
-async function ensureTestimonialsSeeded() {
-  const snapshot = await getDocs(collection(db, 'testimonials'));
-  if (!snapshot.empty) return;
-  let order = defaultTestimonials.length;
-  for (const review of defaultTestimonials) {
-    const { id, ...rest } = review;
-    await setDoc(doc(db, 'testimonials', id), { ...rest, status: 'approved', createdAt: order });
-    order -= 1;
   }
 }
 
 async function loadTestimonials() {
-  await ensureTestimonialsSeeded();
-  const snapshot = await getDocs(collection(db, 'testimonials'));
-  const testimonials = snapshot.docs
-    .map(d => ({ id: d.id, status: 'pending', ...d.data() }))
-    .filter(review => review.status === 'approved');
-  testimonials.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-  return testimonials;
-}
-
-async function getAdminCredentials() {
-  const snap = await getDoc(adminCredDocRef);
-  const defaults = { username: 'madaag1', password: '9710800046' };
-  if (!snap.exists()) {
-    await setDoc(adminCredDocRef, defaults);
-    return defaults;
+  try {
+    const snapshot = await getDocs(collection(db, 'testimonials'));
+    const testimonials = snapshot.docs
+      .map(d => ({ id: d.id, status: 'pending', ...d.data() }))
+      .filter(review => review.status === 'approved');
+    return testimonials.length ? testimonials.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)) : [...defaultTestimonials];
+  } catch (error) {
+    console.warn('Using built-in testimonials because Firestore is unavailable.', error);
+    return [...defaultTestimonials];
   }
-  return { ...defaults, ...snap.data() };
-}
-
-async function getAuthUsers() {
-  const snapshot = await getDocs(collection(db, 'customers'));
-  return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-}
-
-async function findAuthUser(contact) {
-  const users = await getAuthUsers();
-  return users.find(user => user.email === contact || user.mobile === contact);
 }
 
 async function renderTestimonials() {
@@ -557,12 +526,17 @@ async function handleCustomerLogin(event) {
     showTemporaryToast('Enter your email or mobile and password.');
     return;
   }
-  const user = await findAuthUser(contact);
-  if (user && user.password === password) {
-    showTemporaryToast(`Welcome back, ${user.name || 'customer'}!`);
+  if (!contact.includes('@')) {
+    showTemporaryToast('Please use the email address you registered with.');
     return;
   }
-  showTemporaryToast('Login failed. Please check your credentials or sign up.');
+  try {
+    await signInWithEmailAndPassword(auth, contact, password);
+    showTemporaryToast('Welcome back!');
+  } catch (error) {
+    console.error('Customer login failed:', error);
+    showTemporaryToast('Login failed. Check your email and password.');
+  }
 }
 
 async function handleSignup() {
@@ -575,63 +549,62 @@ async function handleSignup() {
     showTemporaryToast('Complete all signup fields to create your account.');
     return;
   }
-  const existing = await findAuthUser(email) || await findAuthUser(mobile);
-  if (existing) {
-    showTemporaryToast('An account already exists with that email or mobile.');
-    return;
+  try {
+    const credential = await createUserWithEmailAndPassword(auth, email, password);
+    await setDoc(doc(db, 'customers', credential.user.uid), {
+      name,
+      email: credential.user.email,
+      mobile,
+      createdAt: Date.now()
+    });
+    showTemporaryToast('Account created successfully. You are now logged in.');
+    document.getElementById('signupName').value = '';
+    document.getElementById('signupEmail').value = '';
+    document.getElementById('signupMobile').value = '';
+    document.getElementById('signupPassword').value = '';
+  } catch (error) {
+    console.error('Signup lookup failed:', error);
+    const message = error.code === 'auth/email-already-in-use'
+      ? 'An account already exists with that email.'
+      : 'Could not create the account. Check Firebase Authentication setup.';
+    showTemporaryToast(message);
   }
-  await addDoc(collection(db, 'customers'), { name, email, mobile, password });
-  showTemporaryToast('Account created successfully. You can now login.');
-  document.getElementById('signupName').value = '';
-  document.getElementById('signupEmail').value = '';
-  document.getElementById('signupMobile').value = '';
-  document.getElementById('signupPassword').value = '';
 }
 
 async function handleAdminLogin() {
   const username = document.getElementById('adminUsername').value.trim();
   const password = document.getElementById('adminPassword').value.trim();
-  const credentials = await getAdminCredentials();
   if (!username || !password) {
     showTemporaryToast('Enter admin username and password.');
     return;
   }
-  if (username === credentials.username && password === credentials.password) {
+  try {
+    if (username.toLowerCase() !== ADMIN_USERNAME) {
+      showTemporaryToast('Admin login failed. Check username/password.');
+      return;
+    }
+    await signInWithEmailAndPassword(auth, ADMIN_AUTH_EMAIL, password);
     window.location.href = 'admin.html';
-    return;
-  }
-  showTemporaryToast('Admin login failed. Check username/password.');
-}
-
-async function handleOtpLogin() {
-  const contact = document.getElementById('authContact').value.trim();
-  if (!contact) {
-    showTemporaryToast('Enter email or mobile to receive an OTP.');
-    return;
-  }
-  const user = await findAuthUser(contact);
-  if (!user) {
-    showTemporaryToast('No user found for that email or mobile. Please sign up first.');
-    return;
-  }
-  const otp = String(Math.floor(100000 + Math.random() * 900000));
-  const entered = prompt(`Enter the OTP sent to ${contact}. (Simulated OTP: ${otp})`);
-  if (entered === otp) {
-    showTemporaryToast(`OTP verified. Welcome back, ${user.name}!`);
-  } else {
-    showTemporaryToast('OTP verification failed. Try again.');
+  } catch (error) {
+    console.error('Admin login failed:', error);
+    showTemporaryToast('Admin login failed. Check username/password.');
   }
 }
 
-function handleGoogleLogin() {
-  showTemporaryToast('Google login simulated. Welcome to Apni Dukan!');
+async function handleGoogleLogin() {
+  try {
+    await signInWithPopup(auth, new GoogleAuthProvider());
+    showTemporaryToast('Google sign-in successful.');
+  } catch (error) {
+    console.error('Google sign-in failed:', error);
+    showTemporaryToast('Google sign-in is unavailable. Enable it in Firebase Authentication.');
+  }
 }
 
 async function init() {
-  cachedSettings = await applyStoreSettings();
-  await renderProducts();
-  await renderTestimonials();
-
+  // Keep the login controls usable even when a remote data request fails.
+  // Previously a Firestore permission error prevented every listener below
+  // from being registered, so the Sign up and Admin tabs appeared unclickable.
   const authForm = document.getElementById('userAuthForm');
   if (authForm) {
     authForm.addEventListener('submit', handleCustomerLogin);
@@ -649,11 +622,17 @@ async function init() {
   const adminLoginButton = document.getElementById('adminLoginButton');
   if (adminLoginButton) adminLoginButton.addEventListener('click', handleAdminLogin);
 
-  const otpLoginButton = document.getElementById('otpLoginButton');
-  if (otpLoginButton) otpLoginButton.addEventListener('click', handleOtpLogin);
-
   const googleLoginButton = document.getElementById('googleLoginButton');
   if (googleLoginButton) googleLoginButton.addEventListener('click', handleGoogleLogin);
+
+  try {
+    cachedSettings = await applyStoreSettings();
+    await renderProducts();
+    await renderTestimonials();
+  } catch (error) {
+    console.error('Store data could not be loaded:', error);
+    showTemporaryToast('Store data could not load. Firebase permissions need attention.');
+  }
 }
 
 init();
