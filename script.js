@@ -2,7 +2,7 @@ import {
   db, auth, collection, doc, getDoc, getDocs, setDoc,
   GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword,
   signInWithPopup, ADMIN_USERNAME, ADMIN_AUTH_EMAIL
-} from './firebase-config.js';
+} from './firebase-config.js?v=20260731-auth';
 
 const defaultProducts = [
   {
