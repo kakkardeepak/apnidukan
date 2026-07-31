@@ -1,8 +1,8 @@
 import {
   db, auth, collection, doc, getDoc, getDocs, setDoc,
   GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  signInWithPopup, ADMIN_USERNAME, ADMIN_AUTH_EMAIL
-} from './firebase-config.js?v=20260731-auth';
+  signInWithPopup, RecaptchaVerifier, signInWithPhoneNumber, ADMIN_USERNAME, ADMIN_AUTH_EMAIL
+} from './firebase-config.js?v=20260731-phone';
 
 const defaultProducts = [
   {
@@ -601,6 +601,42 @@ async function handleGoogleLogin() {
   }
 }
 
+let phoneRecaptchaVerifier;
+
+async function handlePhoneLogin() {
+  const phoneNumber = document.getElementById('phoneLoginNumber').value.trim();
+  const button = document.getElementById('phoneLoginButton');
+  if (!/^\+[1-9]\d{7,14}$/.test(phoneNumber)) {
+    showTemporaryToast('Enter your phone number with country code, for example +919876543210.');
+    return;
+  }
+
+  try {
+    if (!phoneRecaptchaVerifier) {
+      phoneRecaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' });
+      await phoneRecaptchaVerifier.render();
+    }
+    button.disabled = true;
+    button.textContent = 'Sending OTP...';
+    const confirmation = await signInWithPhoneNumber(auth, phoneNumber, phoneRecaptchaVerifier);
+    const code = window.prompt(`Enter the OTP sent to ${phoneNumber}.`);
+    if (!code) {
+      showTemporaryToast('OTP entry cancelled.');
+      return;
+    }
+    await confirmation.confirm(code);
+    showTemporaryToast('Phone number verified. You are now logged in.');
+  } catch (error) {
+    console.error('Phone sign-in failed:', error);
+    phoneRecaptchaVerifier?.clear();
+    phoneRecaptchaVerifier = null;
+    showTemporaryToast('Phone login failed. Enable Phone provider and check Firebase SMS settings.');
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Send phone OTP';
+  }
+}
+
 async function init() {
   // Keep the login controls usable even when a remote data request fails.
   // Previously a Firestore permission error prevented every listener below
@@ -624,6 +660,9 @@ async function init() {
 
   const googleLoginButton = document.getElementById('googleLoginButton');
   if (googleLoginButton) googleLoginButton.addEventListener('click', handleGoogleLogin);
+
+  const phoneLoginButton = document.getElementById('phoneLoginButton');
+  if (phoneLoginButton) phoneLoginButton.addEventListener('click', handlePhoneLogin);
 
   try {
     cachedSettings = await applyStoreSettings();

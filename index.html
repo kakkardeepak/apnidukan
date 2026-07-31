@@ -147,6 +147,14 @@
             <div class="login-extra-actions">
               <button type="button" class="button button-secondary" id="googleLoginButton">Login with Google</button>
             </div>
+            <div class="phone-login-actions">
+              <label>
+                Phone login
+                <input id="phoneLoginNumber" type="tel" inputmode="tel" placeholder="+919876543210" autocomplete="tel" />
+              </label>
+              <button type="button" class="button button-secondary" id="phoneLoginButton">Send phone OTP</button>
+              <div id="recaptcha-container"></div>
+            </div>
           </div>
           <div class="form-row hidden" data-mode="customer-signup">
             <label>
@@ -179,7 +187,7 @@
             <button class="button button-primary" type="button" id="adminLoginButton">Admin login</button>
           </div>
         </form>
-        <p class="login-note">Customers can sign up, sign in with email and password, or use Google. Admin access requires the administrator account.</p>
+        <p class="login-note">Customers can sign up, sign in with email, Google, or phone OTP. Admin access requires the administrator account.</p>
       </div>
     </section>
 
@@ -361,6 +369,6 @@
     </div>
   </footer>
 
-  <script type="module" src="script.js?v=20260731"></script>
+  <script type="module" src="script.js?v=20260731-phone"></script>
 </body>
 </html>

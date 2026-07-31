@@ -7,6 +7,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
@@ -53,5 +55,7 @@ export {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
   onAuthStateChanged
 };
