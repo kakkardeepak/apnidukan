@@ -1,3 +1,5 @@
+import { db, collection, doc, getDoc, getDocs, setDoc, addDoc } from './firebase-config.js';
+
 const defaultProducts = [
   {
     id: 'watch-sport-01',
@@ -25,6 +27,7 @@ const defaultProducts = [
     id: 'formal-shirt-03',
     title: 'Elegant Formal Shirt',
     category: 'Clothing',
+    audience: 'Men',
     description: 'Tailored formal shirt in premium cotton for every office meeting.',
     price: 899,
     marketPrice: 1599,
@@ -35,6 +38,7 @@ const defaultProducts = [
     id: 'earbuds-pro-04',
     title: 'Noise-Canceling Earbuds',
     category: 'Electronics',
+    audience: 'Unisex',
     description: 'Wireless earbuds with long battery life and crisp audio.',
     price: 2199,
     marketPrice: 3499,
@@ -42,12 +46,6 @@ const defaultProducts = [
     image: 'https://via.placeholder.com/600x600?text=Earbuds'
   }
 ];
-
-const storageKey = 'apniDukanProducts';
-const settingsKey = 'apniDukanSettings';
-const testimonialsKey = 'apniDukanTestimonials';
-const adminCredentialsKey = 'apniDukanAdminCredentials';
-const authUsersKey = 'apniDukanCustomers';
 
 const defaultTestimonials = [
   {
@@ -60,7 +58,6 @@ const defaultTestimonials = [
   },
   {
     id: 'review-aarav',
-    status: 'approved',
     name: 'Aarav',
     location: 'Chennai',
     quote: 'WhatsApp ordering was quick and the packaging felt luxurious. I appreciate the personal service and smooth checkout.',
@@ -69,7 +66,6 @@ const defaultTestimonials = [
   },
   {
     id: 'review-meera',
-    status: 'approved',
     name: 'Meera',
     location: 'Pune',
     quote: 'The style curation is top-notch. Highly recommended—each product feels premium, and the service kept me informed at every step.',
@@ -78,81 +74,98 @@ const defaultTestimonials = [
   }
 ];
 
-function loadSettings() {
-  const saved = localStorage.getItem(settingsKey);
-  const defaults = {
-    whatsappNumber: '919999999999',
-    supportEmail: 'support@apnidukan.com',
-    supportPhone: '+91 99999 99999',
-    instagramUrl: 'https://instagram.com',
-    storeTagline: 'Luxury curated for every style',
-    themePack: 'default',
-    accentColor: '#d4af37',
-    headerColor: '#05070f',
-    surfaceColor: 'rgba(255,255,255,.05)',
-    backgroundColor: '#050505',
-    logoData: '',
-    brandTextStyle: 'classic'
-  };
-  if (!saved) {
-    localStorage.setItem(settingsKey, JSON.stringify(defaults));
-    return defaults;
+const settingsDocRef = doc(db, 'config', 'settings');
+const adminCredDocRef = doc(db, 'config', 'adminCredentials');
+
+const defaultSettings = {
+  whatsappNumber: '919999999999',
+  supportEmail: 'support@apnidukan.com',
+  supportPhone: '+91 99999 99999',
+  instagramUrl: 'https://instagram.com',
+  storeTagline: 'Luxury curated for every style',
+  themePack: 'default',
+  accentColor: '#d4af37',
+  headerColor: '#05070f',
+  surfaceColor: '#ffffff',
+  backgroundColor: '#050505',
+  logoData: '',
+  brandTextStyle: 'classic'
+};
+
+async function ensureProductsSeeded() {
+  const snapshot = await getDocs(collection(db, 'products'));
+  if (!snapshot.empty) return;
+  let order = defaultProducts.length;
+  for (const product of defaultProducts) {
+    const { id, ...rest } = product;
+    await setDoc(doc(db, 'products', id), { ...rest, createdAt: order });
+    order -= 1;
   }
-  return { ...defaults, ...JSON.parse(saved) };
 }
 
-function loadProducts() {
-  const saved = localStorage.getItem(storageKey);
-  if (!saved) {
-    localStorage.setItem(storageKey, JSON.stringify(defaultProducts));
-    return defaultProducts;
-  }
-  return JSON.parse(saved);
+async function loadProducts() {
+  await ensureProductsSeeded();
+  const snapshot = await getDocs(collection(db, 'products'));
+  const products = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  products.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  return products;
 }
 
-function loadTestimonials() {
-  const saved = localStorage.getItem(testimonialsKey);
-  if (!saved) {
-    const defaults = defaultTestimonials.map(review => ({ status: review.status || 'approved', ...review }));
-    localStorage.setItem(testimonialsKey, JSON.stringify(defaults));
-    return defaults.filter(review => review.status === 'approved');
+async function loadSettings() {
+  const snap = await getDoc(settingsDocRef);
+  if (!snap.exists()) {
+    await setDoc(settingsDocRef, defaultSettings);
+    return { ...defaultSettings };
   }
-  return JSON.parse(saved).map(review => ({ status: review.status || 'approved', ...review })).filter(review => review.status === 'approved');
+  return { ...defaultSettings, ...snap.data() };
 }
 
-function getAdminCredentials() {
-  const saved = localStorage.getItem(adminCredentialsKey);
+async function ensureTestimonialsSeeded() {
+  const snapshot = await getDocs(collection(db, 'testimonials'));
+  if (!snapshot.empty) return;
+  let order = defaultTestimonials.length;
+  for (const review of defaultTestimonials) {
+    const { id, ...rest } = review;
+    await setDoc(doc(db, 'testimonials', id), { ...rest, status: 'approved', createdAt: order });
+    order -= 1;
+  }
+}
+
+async function loadTestimonials() {
+  await ensureTestimonialsSeeded();
+  const snapshot = await getDocs(collection(db, 'testimonials'));
+  const testimonials = snapshot.docs
+    .map(d => ({ id: d.id, status: 'pending', ...d.data() }))
+    .filter(review => review.status === 'approved');
+  testimonials.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  return testimonials;
+}
+
+async function getAdminCredentials() {
+  const snap = await getDoc(adminCredDocRef);
   const defaults = { username: 'madaag1', password: '9710800046' };
-  if (!saved) {
-    localStorage.setItem(adminCredentialsKey, JSON.stringify(defaults));
+  if (!snap.exists()) {
+    await setDoc(adminCredDocRef, defaults);
     return defaults;
   }
-  return { ...defaults, ...JSON.parse(saved) };
+  return { ...defaults, ...snap.data() };
 }
 
-function getAuthUsers() {
-  const saved = localStorage.getItem(authUsersKey);
-  if (!saved) {
-    localStorage.setItem(authUsersKey, JSON.stringify([]));
-    return [];
-  }
-  return JSON.parse(saved);
+async function getAuthUsers() {
+  const snapshot = await getDocs(collection(db, 'customers'));
+  return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
-function saveAuthUsers(users) {
-  localStorage.setItem(authUsersKey, JSON.stringify(users));
-}
-
-function findAuthUser(contact) {
-  const users = getAuthUsers();
+async function findAuthUser(contact) {
+  const users = await getAuthUsers();
   return users.find(user => user.email === contact || user.mobile === contact);
 }
 
-function renderTestimonials() {
+async function renderTestimonials() {
   const rotator = document.getElementById('testimonialRotator');
   const indicators = document.getElementById('testimonialIndicators');
   if (!rotator) return;
-  const testimonials = loadTestimonials();
+  const testimonials = await loadTestimonials();
   if (!testimonials.length) {
     rotator.innerHTML = '<p style="color: var(--muted);">No customer reviews available yet.</p>';
     if (indicators) indicators.innerHTML = '';
@@ -179,50 +192,17 @@ function renderTestimonials() {
       <span class="testimonial-indicator${index === 0 ? ' active' : ''}" data-index="${index}"></span>
     `).join('');
   }
+  rotateTestimonials();
 }
 
-function renderProducts() {
-  const productGrid = document.getElementById('productGrid');
-  if (!productGrid) return;
-
-  const products = loadProducts();
-  productGrid.innerHTML = products.map(product => {
-    const discount = product.marketPrice > product.price ? Math.round(100 - (product.price / product.marketPrice) * 100) : 0;
-    return `
-      <article class="product-card">
-        <img src="${product.image}" alt="${product.title}" />
-        <div class="product-info">
-          <div>
-            <p class="customer-tag">${product.category}</p>
-            <h3>${product.title}</h3>
-            <p>${product.description}</p>
-          </div>
-          <div>
-            <div class="product-pricing">
-              <span class="product-price">₹${product.price.toLocaleString()}</span>
-              <span class="product-market">₹${product.marketPrice.toLocaleString()}</span>
-            </div>
-            <div class="product-actions">
-              <a class="button button-primary" href="${createWhatsAppUrl(product)}" target="_blank">Order on WhatsApp</a>
-              <span>${product.qty} in stock</span>
-            </div>
-            ${discount ? `<p style="margin-top:12px;color:var(--accent);">Save ${discount}%</p>` : ''}
-          </div>
-        </div>
-      </article>
-    `;
-  }).join('');
-}
-
-function createWhatsAppUrl(product) {
-  const settings = loadSettings();
+function createWhatsAppUrl(product, settings) {
   const phone = settings.whatsappNumber.replace(/[\s+]/g, '');
   const text = encodeURIComponent(`Hello Apni Dukan, I would like to order ${product.title} priced at ₹${product.price}. Please help me proceed.`);
   return `https://wa.me/${phone}?text=${text}`;
 }
 
-function applyStoreSettings() {
-  const settings = loadSettings();
+async function applyStoreSettings() {
+  const settings = await loadSettings();
   applyTheme(settings);
   applyLogo(settings);
   applyBrandTextStyle(settings.brandTextStyle);
@@ -245,22 +225,13 @@ function applyStoreSettings() {
   const floatInstagram = document.getElementById('floatInstagram');
   const floatWhatsApp = document.getElementById('floatWhatsApp');
 
-  if (headerInstagram) {
-    headerInstagram.href = settings.instagramUrl;
-  }
-  if (headerWhatsApp) {
-    headerWhatsApp.href = `https://wa.me/${settings.whatsappNumber}`;
-  }
-  if (floatInstagram) {
-    floatInstagram.href = settings.instagramUrl;
-  }
-  if (floatWhatsApp) {
-    floatWhatsApp.href = `https://wa.me/${settings.whatsappNumber}`;
-  }
+  if (headerInstagram) headerInstagram.href = settings.instagramUrl;
+  if (headerWhatsApp) headerWhatsApp.href = `https://wa.me/${settings.whatsappNumber}`;
+  if (floatInstagram) floatInstagram.href = settings.instagramUrl;
+  if (floatWhatsApp) floatWhatsApp.href = `https://wa.me/${settings.whatsappNumber}`;
+
   const footerWhatsAppLink = document.querySelector('.footer-card a[href*="wa.me"]');
-  if (footerWhatsAppLink) {
-    footerWhatsAppLink.href = `https://wa.me/${settings.whatsappNumber}`;
-  }
+  if (footerWhatsAppLink) footerWhatsAppLink.href = `https://wa.me/${settings.whatsappNumber}`;
   const supportWhatsAppLink = document.querySelector('.support-panel .button-secondary');
   if (supportWhatsAppLink) {
     supportWhatsAppLink.href = `https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent('Hello Apni Dukan, I need support.')}`;
@@ -271,24 +242,18 @@ function applyStoreSettings() {
   if (phoneText) phoneText.textContent = `Phone: ${settings.supportPhone}`;
   const tagline = document.querySelector('.hero-copy p');
   if (tagline) tagline.textContent = settings.storeTagline;
+
+  return settings;
 }
 
 function applyTheme(settings) {
   const classList = document.body.classList;
   classList.remove('theme-default', 'theme-midnight', 'theme-ivory', 'theme-noir');
   classList.add(`theme-${settings.themePack || 'default'}`);
-  if (settings.accentColor) {
-    document.body.style.setProperty('--accent', settings.accentColor);
-  }
-  if (settings.headerColor) {
-    document.body.style.setProperty('--header-bg', settings.headerColor);
-  }
-  if (settings.surfaceColor) {
-    document.body.style.setProperty('--surface', settings.surfaceColor);
-  }
-  if (settings.backgroundColor) {
-    document.body.style.setProperty('--bg', settings.backgroundColor);
-  }
+  if (settings.accentColor) document.body.style.setProperty('--accent', settings.accentColor);
+  if (settings.headerColor) document.body.style.setProperty('--header-bg', settings.headerColor);
+  if (settings.surfaceColor) document.body.style.setProperty('--surface', settings.surfaceColor);
+  if (settings.backgroundColor) document.body.style.setProperty('--bg', settings.backgroundColor);
 }
 
 function applyLogo(settings) {
@@ -296,8 +261,10 @@ function applyLogo(settings) {
   if (!logoContainer) return;
   const logoSrc = settings.logoData;
   if (logoSrc) {
+    logoContainer.classList.add('custom-logo');
     logoContainer.innerHTML = `<img class="site-logo" src="${logoSrc}" alt="Apni Dukan logo" />`;
   } else {
+    logoContainer.classList.remove('custom-logo');
     logoContainer.innerHTML = `
       <svg viewBox="0 0 160 120" class="logo-svg" aria-hidden="true">
         <defs>
@@ -311,7 +278,7 @@ function applyLogo(settings) {
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
             </feMerge>
-          </feMerge>
+          </filter>
         </defs>
         <g fill="none" stroke="url(#goldGrad)" stroke-width="10" filter="url(#glow)">
           <path d="M24 102 L24 18 L74 18" />
@@ -342,8 +309,7 @@ function applyBrandTextStyle(style) {
   }
 }
 
-function getFilteredProducts() {
-  const products = loadProducts();
+function getFilteredProducts(allProducts, settings) {
   const searchValue = document.getElementById('productSearch')?.value.trim().toLowerCase() || '';
   const selectedAudience = document.getElementById('filterAudience')?.value || '';
   const selectedCategory = document.getElementById('filterCategory')?.value || '';
@@ -352,7 +318,7 @@ function getFilteredProducts() {
   const minPrice = Number(document.getElementById('filterMinPrice')?.value || 0);
   const maxPrice = Number(document.getElementById('filterMaxPrice')?.value || 0);
 
-  return products.filter(product => {
+  return allProducts.filter(product => {
     const matchesSearch = !searchValue || [product.title, product.description, product.category, product.brand, product.size, product.audience].some(field => String(field || '').toLowerCase().includes(searchValue));
     const matchesAudience = !selectedAudience || String(product.audience || '').toLowerCase() === selectedAudience.toLowerCase();
     const matchesCategory = !selectedCategory || product.category === selectedCategory;
@@ -364,11 +330,16 @@ function getFilteredProducts() {
   });
 }
 
-function renderProducts() {
+let cachedSettings = null;
+
+async function renderProducts() {
   const productGrid = document.getElementById('productGrid');
   if (!productGrid) return;
 
-  const products = getFilteredProducts();
+  const allProducts = await loadProducts();
+  if (!cachedSettings) cachedSettings = await loadSettings();
+  const products = getFilteredProducts(allProducts, cachedSettings);
+
   if (!products.length) {
     productGrid.innerHTML = '<p style="color: var(--muted);">No products match the selected filters. Clear filters to see all items.</p>';
     return;
@@ -389,11 +360,11 @@ function renderProducts() {
           </div>
           <div>
             <div class="product-pricing">
-              <span class="product-price">₹${product.price.toLocaleString()}</span>
-              <span class="product-market">₹${product.marketPrice.toLocaleString()}</span>
+              <span class="product-price">₹${Number(product.price).toLocaleString()}</span>
+              <span class="product-market">₹${Number(product.marketPrice).toLocaleString()}</span>
             </div>
             <div class="product-actions">
-              <a class="button button-primary" href="${createWhatsAppUrl(product)}" target="_blank">Order on WhatsApp</a>
+              <a class="button button-primary" href="${createWhatsAppUrl(product, cachedSettings)}" target="_blank">Order on WhatsApp</a>
               <span>${product.qty} in stock</span>
             </div>
             ${discount ? `<p style="margin-top:12px;color:var(--accent);">Save ${discount}%</p>` : ''}
@@ -498,7 +469,6 @@ function setupStorefrontFilters() {
     });
   }
 
-
   const searchForm = document.querySelector('.search-bar');
   if (searchForm) {
     searchForm.addEventListener('submit', event => {
@@ -507,7 +477,7 @@ function setupStorefrontFilters() {
     });
   }
 
-  const filterInputs = ['productSearch', 'filterCategory', 'filterBrand', 'filterSize', 'filterMinPrice', 'filterMaxPrice'];
+  const filterInputs = ['productSearch', 'filterAudience', 'filterCategory', 'filterBrand', 'filterSize', 'filterMinPrice', 'filterMaxPrice'];
   filterInputs.forEach(id => {
     const field = document.getElementById(id);
     if (field) {
@@ -519,6 +489,7 @@ function setupStorefrontFilters() {
   if (clearFilters) {
     clearFilters.addEventListener('click', () => {
       document.getElementById('productSearch').value = '';
+      document.getElementById('filterAudience').value = '';
       document.getElementById('filterCategory').value = '';
       document.getElementById('filterBrand').value = '';
       document.getElementById('filterSize').value = '';
@@ -553,6 +524,8 @@ function rotateTestimonials() {
       showItem(currentIndex);
     });
   });
+  if (rotator.dataset.rotating) return;
+  rotator.dataset.rotating = 'true';
   setInterval(() => {
     currentIndex = (currentIndex + 1) % items.length;
     showItem(currentIndex);
@@ -576,7 +549,7 @@ function updateAuthMode(mode) {
   rows.forEach(row => row.classList.toggle('hidden', row.dataset.mode !== mode));
 }
 
-function handleCustomerLogin(event) {
+async function handleCustomerLogin(event) {
   event.preventDefault();
   const contact = document.getElementById('authContact').value.trim();
   const password = document.getElementById('authPassword').value.trim();
@@ -584,7 +557,7 @@ function handleCustomerLogin(event) {
     showTemporaryToast('Enter your email or mobile and password.');
     return;
   }
-  const user = findAuthUser(contact);
+  const user = await findAuthUser(contact);
   if (user && user.password === password) {
     showTemporaryToast(`Welcome back, ${user.name || 'customer'}!`);
     return;
@@ -592,7 +565,7 @@ function handleCustomerLogin(event) {
   showTemporaryToast('Login failed. Please check your credentials or sign up.');
 }
 
-function handleSignup() {
+async function handleSignup() {
   const name = document.getElementById('signupName').value.trim();
   const email = document.getElementById('signupEmail').value.trim();
   const mobile = document.getElementById('signupMobile').value.trim();
@@ -602,13 +575,12 @@ function handleSignup() {
     showTemporaryToast('Complete all signup fields to create your account.');
     return;
   }
-  const users = getAuthUsers();
-  if (findAuthUser(email) || findAuthUser(mobile)) {
+  const existing = await findAuthUser(email) || await findAuthUser(mobile);
+  if (existing) {
     showTemporaryToast('An account already exists with that email or mobile.');
     return;
   }
-  users.unshift({ id: `user-${Date.now()}`, name, email, mobile, password });
-  saveAuthUsers(users);
+  await addDoc(collection(db, 'customers'), { name, email, mobile, password });
   showTemporaryToast('Account created successfully. You can now login.');
   document.getElementById('signupName').value = '';
   document.getElementById('signupEmail').value = '';
@@ -616,10 +588,10 @@ function handleSignup() {
   document.getElementById('signupPassword').value = '';
 }
 
-function handleAdminLogin() {
+async function handleAdminLogin() {
   const username = document.getElementById('adminUsername').value.trim();
   const password = document.getElementById('adminPassword').value.trim();
-  const credentials = getAdminCredentials();
+  const credentials = await getAdminCredentials();
   if (!username || !password) {
     showTemporaryToast('Enter admin username and password.');
     return;
@@ -631,13 +603,13 @@ function handleAdminLogin() {
   showTemporaryToast('Admin login failed. Check username/password.');
 }
 
-function handleOtpLogin() {
+async function handleOtpLogin() {
   const contact = document.getElementById('authContact').value.trim();
   if (!contact) {
     showTemporaryToast('Enter email or mobile to receive an OTP.');
     return;
   }
-  const user = findAuthUser(contact);
+  const user = await findAuthUser(contact);
   if (!user) {
     showTemporaryToast('No user found for that email or mobile. Please sign up first.');
     return;
@@ -655,11 +627,10 @@ function handleGoogleLogin() {
   showTemporaryToast('Google login simulated. Welcome to Apni Dukan!');
 }
 
-function init() {
-  renderProducts();
-  renderTestimonials();
-  applyStoreSettings();
-  rotateTestimonials();
+async function init() {
+  cachedSettings = await applyStoreSettings();
+  await renderProducts();
+  await renderTestimonials();
 
   const authForm = document.getElementById('userAuthForm');
   if (authForm) {
@@ -673,24 +644,16 @@ function init() {
   });
 
   const signupButton = document.getElementById('signupButton');
-  if (signupButton) {
-    signupButton.addEventListener('click', handleSignup);
-  }
+  if (signupButton) signupButton.addEventListener('click', handleSignup);
 
   const adminLoginButton = document.getElementById('adminLoginButton');
-  if (adminLoginButton) {
-    adminLoginButton.addEventListener('click', handleAdminLogin);
-  }
+  if (adminLoginButton) adminLoginButton.addEventListener('click', handleAdminLogin);
 
   const otpLoginButton = document.getElementById('otpLoginButton');
-  if (otpLoginButton) {
-    otpLoginButton.addEventListener('click', handleOtpLogin);
-  }
+  if (otpLoginButton) otpLoginButton.addEventListener('click', handleOtpLogin);
 
   const googleLoginButton = document.getElementById('googleLoginButton');
-  if (googleLoginButton) {
-    googleLoginButton.addEventListener('click', handleGoogleLogin);
-  }
+  if (googleLoginButton) googleLoginButton.addEventListener('click', handleGoogleLogin);
 }
 
 init();
