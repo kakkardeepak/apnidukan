@@ -1,4 +1,4 @@
-import { db, auth, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, onAuthStateChanged, ADMIN_AUTH_EMAIL } from './firebase-config.js?v=20260731-phone';
+import { db, auth, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, onAuthStateChanged, ADMIN_AUTH_EMAIL } from './firebase-config.js?v=20260731-feedback';
 
 const defaultTestimonials = [
   {

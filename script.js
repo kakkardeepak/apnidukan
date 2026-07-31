@@ -2,7 +2,7 @@ import {
   db, auth, collection, doc, getDoc, getDocs, setDoc,
   GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword,
   signInWithPopup, RecaptchaVerifier, signInWithPhoneNumber, ADMIN_USERNAME, ADMIN_AUTH_EMAIL
-} from './firebase-config.js?v=20260731-phone';
+} from './firebase-config.js?v=20260731-feedback';
 
 const defaultProducts = [
   {
@@ -574,6 +574,7 @@ async function handleSignup() {
 async function handleAdminLogin() {
   const username = document.getElementById('adminUsername').value.trim();
   const password = document.getElementById('adminPassword').value.trim();
+  const button = document.getElementById('adminLoginButton');
   if (!username || !password) {
     showTemporaryToast('Enter admin username and password.');
     return;
@@ -583,11 +584,16 @@ async function handleAdminLogin() {
       showTemporaryToast('Admin login failed. Check username/password.');
       return;
     }
+    button.disabled = true;
+    button.textContent = 'Signing in...';
     await signInWithEmailAndPassword(auth, ADMIN_AUTH_EMAIL, password);
     window.location.href = 'admin.html';
   } catch (error) {
     console.error('Admin login failed:', error);
     showTemporaryToast('Admin login failed. Check username/password.');
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Admin login';
   }
 }
 
