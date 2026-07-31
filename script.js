@@ -14,7 +14,7 @@ const defaultProducts = [
     price: 2499,
     marketPrice: 3999,
     qty: 18,
-    image: 'https://via.placeholder.com/600x600?text=Sport+Watch'
+    image: 'https://placehold.co/600x600?text=Sport+Watch'
   },
   {
     id: 'sneaker-air-02',
@@ -25,7 +25,7 @@ const defaultProducts = [
     price: 1799,
     marketPrice: 2999,
     qty: 32,
-    image: 'https://via.placeholder.com/600x600?text=Urban+Sneakers'
+    image: 'https://placehold.co/600x600?text=Urban+Sneakers'
   },
   {
     id: 'formal-shirt-03',
@@ -36,7 +36,7 @@ const defaultProducts = [
     price: 899,
     marketPrice: 1599,
     qty: 45,
-    image: 'https://via.placeholder.com/600x600?text=Formal+Shirt'
+    image: 'https://placehold.co/600x600?text=Formal+Shirt'
   },
   {
     id: 'earbuds-pro-04',
@@ -47,7 +47,7 @@ const defaultProducts = [
     price: 2199,
     marketPrice: 3499,
     qty: 27,
-    image: 'https://via.placeholder.com/600x600?text=Earbuds'
+    image: 'https://placehold.co/600x600?text=Earbuds'
   }
 ];
 
@@ -58,7 +58,7 @@ const defaultTestimonials = [
     location: 'Bengaluru',
     quote: 'Amazing service and premium quality products. The delivery was fast, and the premium packaging made it feel special.',
     rating: 5,
-    avatar: 'https://via.placeholder.com/80?text=P'
+    avatar: 'https://placehold.co/80?text=P'
   },
   {
     id: 'review-aarav',
@@ -66,7 +66,7 @@ const defaultTestimonials = [
     location: 'Chennai',
     quote: 'WhatsApp ordering was quick and the packaging felt luxurious. I appreciate the personal service and smooth checkout.',
     rating: 5,
-    avatar: 'https://via.placeholder.com/80?text=A'
+    avatar: 'https://placehold.co/80?text=A'
   },
   {
     id: 'review-meera',
@@ -74,7 +74,7 @@ const defaultTestimonials = [
     location: 'Pune',
     quote: 'The style curation is top-notch. Highly recommended—each product feels premium, and the service kept me informed at every step.',
     rating: 5,
-    avatar: 'https://via.placeholder.com/80?text=M'
+    avatar: 'https://placehold.co/80?text=M'
   }
 ];
 
@@ -145,7 +145,7 @@ async function renderTestimonials() {
     return `
       <article class="testimonial-item${index === 0 ? ' active' : ''}" data-id="${item.id}">
         <div class="testimonial-top">
-          <img class="testimonial-avatar" src="${item.avatar || 'https://via.placeholder.com/80?text=' + item.name.charAt(0)}" alt="${item.name} portrait" />
+          <img class="testimonial-avatar" src="${item.avatar || 'https://placehold.co/80?text=' + item.name.charAt(0)}" alt="${item.name} portrait" />
           <div>
             <div class="testimonial-rating">${stars}</div>
             <span class="testimonial-name">${item.name}, ${item.location}</span>
