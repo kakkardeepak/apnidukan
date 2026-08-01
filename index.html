@@ -8,7 +8,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23050919'/%3E%3Cpath d='M14 50V14h21v36M35 14h7a12 12 0 0 1 12 12v12a12 12 0 0 1-12 12h-7' fill='none' stroke='%23d4af37' stroke-width='5'/%3E%3C/svg%3E" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -22,7 +21,7 @@
         </div>
       </div>
       <form class="search-bar" action="#collections">
-        <input type="search" placeholder="Search watches, shoes, electronics..." aria-label="Search Apni Dukan" />
+        <input type="search" placeholder="Search designer watches, footwear, electronics..." aria-label="Search Apni Dukan" />
         <button type="submit">Search</button>
       </form>
       <div class="header-actions">
@@ -136,8 +135,8 @@
         <form id="userAuthForm">
           <div class="form-row" data-mode="customer-login">
             <label>
-              Email address
-              <input id="authContact" type="email" placeholder="name@example.com" autocomplete="email" />
+              Email or mobile
+              <input id="authContact" type="text" placeholder="Enter email or mobile" autocomplete="username" />
             </label>
             <label>
               Password
@@ -145,15 +144,8 @@
             </label>
             <button class="button button-primary" type="submit">Customer login</button>
             <div class="login-extra-actions">
+              <button type="button" class="button button-secondary" id="otpLoginButton">Login with OTP</button>
               <button type="button" class="button button-secondary" id="googleLoginButton">Login with Google</button>
-            </div>
-            <div class="phone-login-actions">
-              <label>
-                Phone login
-                <input id="phoneLoginNumber" type="tel" inputmode="tel" placeholder="+919876543210" autocomplete="tel" />
-              </label>
-              <button type="button" class="button button-secondary" id="phoneLoginButton">Send phone OTP</button>
-              <div id="recaptcha-container"></div>
             </div>
           </div>
           <div class="form-row hidden" data-mode="customer-signup">
@@ -187,7 +179,7 @@
             <button class="button button-primary" type="button" id="adminLoginButton">Admin login</button>
           </div>
         </form>
-        <p class="login-note">Customers can sign up, sign in with email, Google, or phone OTP. Admin access requires the administrator account.</p>
+        <p class="login-note">Secure admin access is hidden by default. Customers can sign up, login, or use Google/OTP shortcuts.</p>
       </div>
     </section>
 
@@ -369,6 +361,6 @@
     </div>
   </footer>
 
-  <script type="module" src="script.js?v=20260731-admin-diagnostic"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
