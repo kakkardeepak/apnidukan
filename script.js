@@ -1,8 +1,4 @@
-import {
-  db, auth, collection, doc, getDoc, getDocs, setDoc,
-  GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  signInWithPopup, RecaptchaVerifier, signInWithPhoneNumber, ADMIN_USERNAME, ADMIN_AUTH_EMAIL
-} from './firebase-config.js?v=20260731-feedback';
+import { db, collection, doc, getDoc, getDocs, setDoc, addDoc } from './firebase-config.js';
 
 const defaultProducts = [
   {
@@ -10,53 +6,44 @@ const defaultProducts = [
     title: 'Signature Sport Watch',
     category: 'Watches',
     audience: 'Men',
-    brand: 'Apni Dukan',
-    color: 'Black',
-    material: 'Leather',
     description: 'Sleek sport watch with premium leather strap and advanced features.',
     price: 2499,
     marketPrice: 3999,
     qty: 18,
-    image: 'https://placehold.co/600x600?text=Sport+Watch'
+    image: 'https://via.placeholder.com/600x600?text=Sport+Watch'
   },
   {
     id: 'sneaker-air-02',
     title: 'Urban Runner Sneakers',
     category: 'Footwear',
     audience: 'Men',
-    color: 'White',
-    material: 'Mesh',
     description: 'Comfortable and stylish sneakers crafted for city life.',
     price: 1799,
     marketPrice: 2999,
     qty: 32,
-    image: 'https://placehold.co/600x600?text=Urban+Sneakers'
+    image: 'https://via.placeholder.com/600x600?text=Urban+Sneakers'
   },
   {
     id: 'formal-shirt-03',
     title: 'Elegant Formal Shirt',
     category: 'Clothing',
     audience: 'Men',
-    color: 'White',
-    material: 'Cotton',
     description: 'Tailored formal shirt in premium cotton for every office meeting.',
     price: 899,
     marketPrice: 1599,
     qty: 45,
-    image: 'https://placehold.co/600x600?text=Formal+Shirt'
+    image: 'https://via.placeholder.com/600x600?text=Formal+Shirt'
   },
   {
     id: 'earbuds-pro-04',
     title: 'Noise-Canceling Earbuds',
     category: 'Electronics',
     audience: 'Unisex',
-    color: 'Black',
-    material: 'Plastic',
     description: 'Wireless earbuds with long battery life and crisp audio.',
     price: 2199,
     marketPrice: 3499,
     qty: 27,
-    image: 'https://placehold.co/600x600?text=Earbuds'
+    image: 'https://via.placeholder.com/600x600?text=Earbuds'
   }
 ];
 
@@ -67,7 +54,7 @@ const defaultTestimonials = [
     location: 'Bengaluru',
     quote: 'Amazing service and premium quality products. The delivery was fast, and the premium packaging made it feel special.',
     rating: 5,
-    avatar: 'https://placehold.co/80?text=P'
+    avatar: 'https://via.placeholder.com/80?text=P'
   },
   {
     id: 'review-aarav',
@@ -75,7 +62,7 @@ const defaultTestimonials = [
     location: 'Chennai',
     quote: 'WhatsApp ordering was quick and the packaging felt luxurious. I appreciate the personal service and smooth checkout.',
     rating: 5,
-    avatar: 'https://placehold.co/80?text=A'
+    avatar: 'https://via.placeholder.com/80?text=A'
   },
   {
     id: 'review-meera',
@@ -83,11 +70,12 @@ const defaultTestimonials = [
     location: 'Pune',
     quote: 'The style curation is top-notch. Highly recommended—each product feels premium, and the service kept me informed at every step.',
     rating: 5,
-    avatar: 'https://placehold.co/80?text=M'
+    avatar: 'https://via.placeholder.com/80?text=M'
   }
 ];
 
 const settingsDocRef = doc(db, 'config', 'settings');
+const adminCredDocRef = doc(db, 'config', 'adminCredentials');
 
 const defaultSettings = {
   whatsappNumber: '919999999999',
@@ -104,39 +92,73 @@ const defaultSettings = {
   brandTextStyle: 'classic'
 };
 
-async function loadProducts() {
-  try {
-    const snapshot = await getDocs(collection(db, 'products'));
-    if (snapshot.empty) return [...defaultProducts];
-    return snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
-      .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-  } catch (error) {
-    console.warn('Using built-in products because Firestore is unavailable.', error);
-    return [...defaultProducts];
+async function ensureProductsSeeded() {
+  const snapshot = await getDocs(collection(db, 'products'));
+  if (!snapshot.empty) return;
+  let order = defaultProducts.length;
+  for (const product of defaultProducts) {
+    const { id, ...rest } = product;
+    await setDoc(doc(db, 'products', id), { ...rest, createdAt: order });
+    order -= 1;
   }
 }
 
+async function loadProducts() {
+  await ensureProductsSeeded();
+  const snapshot = await getDocs(collection(db, 'products'));
+  const products = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  products.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  return products;
+}
+
 async function loadSettings() {
-  try {
-    const snap = await getDoc(settingsDocRef);
-    return snap.exists() ? { ...defaultSettings, ...snap.data() } : { ...defaultSettings };
-  } catch (error) {
-    console.warn('Using built-in settings because Firestore is unavailable.', error);
+  const snap = await getDoc(settingsDocRef);
+  if (!snap.exists()) {
+    await setDoc(settingsDocRef, defaultSettings);
     return { ...defaultSettings };
+  }
+  return { ...defaultSettings, ...snap.data() };
+}
+
+async function ensureTestimonialsSeeded() {
+  const snapshot = await getDocs(collection(db, 'testimonials'));
+  if (!snapshot.empty) return;
+  let order = defaultTestimonials.length;
+  for (const review of defaultTestimonials) {
+    const { id, ...rest } = review;
+    await setDoc(doc(db, 'testimonials', id), { ...rest, status: 'approved', createdAt: order });
+    order -= 1;
   }
 }
 
 async function loadTestimonials() {
-  try {
-    const snapshot = await getDocs(collection(db, 'testimonials'));
-    const testimonials = snapshot.docs
-      .map(d => ({ id: d.id, status: 'pending', ...d.data() }))
-      .filter(review => review.status === 'approved');
-    return testimonials.length ? testimonials.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)) : [...defaultTestimonials];
-  } catch (error) {
-    console.warn('Using built-in testimonials because Firestore is unavailable.', error);
-    return [...defaultTestimonials];
+  await ensureTestimonialsSeeded();
+  const snapshot = await getDocs(collection(db, 'testimonials'));
+  const testimonials = snapshot.docs
+    .map(d => ({ id: d.id, status: 'pending', ...d.data() }))
+    .filter(review => review.status === 'approved');
+  testimonials.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  return testimonials;
+}
+
+async function getAdminCredentials() {
+  const snap = await getDoc(adminCredDocRef);
+  const defaults = { username: 'madaag1', password: '9710800046' };
+  if (!snap.exists()) {
+    await setDoc(adminCredDocRef, defaults);
+    return defaults;
   }
+  return { ...defaults, ...snap.data() };
+}
+
+async function getAuthUsers() {
+  const snapshot = await getDocs(collection(db, 'customers'));
+  return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+async function findAuthUser(contact) {
+  const users = await getAuthUsers();
+  return users.find(user => user.email === contact || user.mobile === contact);
 }
 
 async function renderTestimonials() {
@@ -154,7 +176,7 @@ async function renderTestimonials() {
     return `
       <article class="testimonial-item${index === 0 ? ' active' : ''}" data-id="${item.id}">
         <div class="testimonial-top">
-          <img class="testimonial-avatar" src="${item.avatar || 'https://placehold.co/80?text=' + item.name.charAt(0)}" alt="${item.name} portrait" />
+          <img class="testimonial-avatar" src="${item.avatar || 'https://via.placeholder.com/80?text=' + item.name.charAt(0)}" alt="${item.name} portrait" />
           <div>
             <div class="testimonial-rating">${stars}</div>
             <span class="testimonial-name">${item.name}, ${item.location}</span>
@@ -287,98 +309,25 @@ function applyBrandTextStyle(style) {
   }
 }
 
-// Lets a shopper type "gshock watch", "mens watch", "women leather bag" etc.
-// and get every relevant result ranked best-first, instead of requiring the
-// exact phrase to appear verbatim in one field.
-const CATEGORY_ALIASES = {
-  shoe: 'Footwear', shoes: 'Footwear', sneaker: 'Footwear', sneakers: 'Footwear', footwear: 'Footwear',
-  watch: 'Watches', watches: 'Watches',
-  glass: 'Sunglasses', glasses: 'Sunglasses', sunglass: 'Sunglasses', sunglasses: 'Sunglasses', shade: 'Sunglasses', shades: 'Sunglasses',
-  bag: 'Handbags', bags: 'Handbags', handbag: 'Handbags', handbags: 'Handbags', purse: 'Handbags',
-  wallet: 'Wallets', wallets: 'Wallets',
-  belt: 'Belts', belts: 'Belts',
-  perfume: 'Perfume', perfumes: 'Perfume', fragrance: 'Perfume', scent: 'Perfume',
-  shirt: 'Clothing', shirts: 'Clothing', tshirt: 'Clothing', clothes: 'Clothing', clothing: 'Clothing', apparel: 'Clothing',
-  tie: 'Tie', ties: 'Tie',
-  brooch: 'Brooch', brooches: 'Brooch'
-};
-
-const AUDIENCE_ALIASES = {
-  men: 'Men', man: 'Men', mens: 'Men', boy: 'Men', boys: 'Men',
-  women: 'Women', woman: 'Women', womens: 'Women', girl: 'Women', girls: 'Women', ladies: 'Women', lady: 'Women',
-  kid: 'Kids', kids: 'Kids', child: 'Kids', children: 'Kids',
-  unisex: 'Unisex'
-};
-
-function buildProductSearchText(product) {
-  // Non-letters/numbers become spaces so "G-Shock" and "gshock" both line up
-  // with a plain word-substring check.
-  const spaced = [product.title, product.description, product.category, product.brand, product.size, product.audience, product.color, product.material]
-    .map(value => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' '))
-    .join(' ');
-  // A punctuation-free version too, so "gshock" also matches "g-shock" even
-  // when the shopper (or the product data) skips the hyphen/space entirely.
-  const compact = spaced.replace(/\s+/g, '');
-  return { spaced, compact };
-}
-
-function tokenizeQuery(query) {
-  return query.toLowerCase().split(/[^a-z0-9']+/).map(token => token.trim()).filter(Boolean);
-}
-
-function tokenMatchesProduct(token, product, searchText) {
-  if (searchText.spaced.includes(token) || searchText.compact.includes(token)) return true;
-  const singular = token.endsWith('s') && token.length > 3 ? token.slice(0, -1) : token;
-  if (singular !== token && (searchText.spaced.includes(singular) || searchText.compact.includes(singular))) return true;
-  const categoryAlias = CATEGORY_ALIASES[token] || CATEGORY_ALIASES[singular];
-  if (categoryAlias && String(product.category || '').toLowerCase() === categoryAlias.toLowerCase()) return true;
-  const audienceAlias = AUDIENCE_ALIASES[token] || AUDIENCE_ALIASES[singular];
-  if (audienceAlias && String(product.audience || '').toLowerCase() === audienceAlias.toLowerCase()) return true;
-  return false;
-}
-
-// Returns how many search tokens this product matched. 0 means "not relevant".
-function searchRelevanceScore(product, tokens) {
-  if (!tokens.length) return 1;
-  const searchText = buildProductSearchText(product);
-  return tokens.reduce((score, token) => score + (tokenMatchesProduct(token, product, searchText) ? 1 : 0), 0);
-}
-
 function getFilteredProducts(allProducts, settings) {
   const searchValue = document.getElementById('productSearch')?.value.trim().toLowerCase() || '';
-  const searchTokens = tokenizeQuery(searchValue);
   const selectedAudience = document.getElementById('filterAudience')?.value || '';
   const selectedCategory = document.getElementById('filterCategory')?.value || '';
   const selectedBrand = document.getElementById('filterBrand')?.value.trim().toLowerCase() || '';
   const selectedSize = document.getElementById('filterSize')?.value.trim().toLowerCase() || '';
-  const selectedColor = document.getElementById('filterColor')?.value.trim().toLowerCase() || '';
-  const selectedMaterial = document.getElementById('filterMaterial')?.value.trim().toLowerCase() || '';
   const minPrice = Number(document.getElementById('filterMinPrice')?.value || 0);
   const maxPrice = Number(document.getElementById('filterMaxPrice')?.value || 0);
 
-  const withScore = allProducts
-    .map(product => ({ product, score: searchRelevanceScore(product, searchTokens) }))
-    .filter(({ product, score }) => {
-      if (searchTokens.length && score === 0) return false;
-      const matchesAudience = !selectedAudience || String(product.audience || '').toLowerCase() === selectedAudience.toLowerCase();
-      const matchesCategory = !selectedCategory || product.category === selectedCategory;
-      const matchesBrand = !selectedBrand || String(product.brand || '').toLowerCase().includes(selectedBrand);
-      const matchesSize = !selectedSize || String(product.size || '').toLowerCase().includes(selectedSize);
-      const matchesColor = !selectedColor || String(product.color || '').toLowerCase().includes(selectedColor);
-      const matchesMaterial = !selectedMaterial || String(product.material || '').toLowerCase().includes(selectedMaterial);
-      const matchesMinPrice = !minPrice || product.price >= minPrice;
-      const matchesMaxPrice = !maxPrice || product.price <= maxPrice;
-      return matchesAudience && matchesCategory && matchesBrand && matchesSize && matchesColor && matchesMaterial && matchesMinPrice && matchesMaxPrice;
-    });
-
-  // Best matches (more matched tokens = more relevant) float to the top; when
-  // there's no exact phrase match, closely-related products still show up
-  // instead of an empty grid. Ties keep their original (newest-first) order.
-  if (searchTokens.length > 1) {
-    withScore.sort((a, b) => b.score - a.score);
-  }
-
-  return withScore.map(({ product }) => product);
+  return allProducts.filter(product => {
+    const matchesSearch = !searchValue || [product.title, product.description, product.category, product.brand, product.size, product.audience].some(field => String(field || '').toLowerCase().includes(searchValue));
+    const matchesAudience = !selectedAudience || String(product.audience || '').toLowerCase() === selectedAudience.toLowerCase();
+    const matchesCategory = !selectedCategory || product.category === selectedCategory;
+    const matchesBrand = !selectedBrand || String(product.brand || '').toLowerCase().includes(selectedBrand);
+    const matchesSize = !selectedSize || String(product.size || '').toLowerCase().includes(selectedSize);
+    const matchesMinPrice = !minPrice || product.price >= minPrice;
+    const matchesMaxPrice = !maxPrice || product.price <= maxPrice;
+    return matchesSearch && matchesAudience && matchesCategory && matchesBrand && matchesSize && matchesMinPrice && matchesMaxPrice;
+  });
 }
 
 let cachedSettings = null;
@@ -408,8 +357,6 @@ async function renderProducts() {
             <p>${product.description}</p>
             ${product.brand ? `<p class="product-detail">Brand: ${product.brand}</p>` : ''}
             ${product.size ? `<p class="product-detail">Size: ${product.size}</p>` : ''}
-            ${product.color ? `<p class="product-detail">Colour: ${product.color}</p>` : ''}
-            ${product.material ? `<p class="product-detail">Material: ${product.material}</p>` : ''}
           </div>
           <div>
             <div class="product-pricing">
@@ -595,14 +542,6 @@ function showTemporaryToast(message) {
   setTimeout(() => toast.remove(), 2500);
 }
 
-function withTimeout(promise, timeoutMs, timeoutMessage) {
-  let timer;
-  const timeout = new Promise((_, reject) => {
-    timer = setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
-  });
-  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
-}
-
 function updateAuthMode(mode) {
   const tabs = document.querySelectorAll('.tab-button');
   const rows = document.querySelectorAll('.form-row');
@@ -618,17 +557,12 @@ async function handleCustomerLogin(event) {
     showTemporaryToast('Enter your email or mobile and password.');
     return;
   }
-  if (!contact.includes('@')) {
-    showTemporaryToast('Please use the email address you registered with.');
+  const user = await findAuthUser(contact);
+  if (user && user.password === password) {
+    showTemporaryToast(`Welcome back, ${user.name || 'customer'}!`);
     return;
   }
-  try {
-    await signInWithEmailAndPassword(auth, contact, password);
-    showTemporaryToast('Welcome back!');
-  } catch (error) {
-    console.error('Customer login failed:', error);
-    showTemporaryToast('Login failed. Check your email and password.');
-  }
+  showTemporaryToast('Login failed. Please check your credentials or sign up.');
 }
 
 async function handleSignup() {
@@ -641,110 +575,63 @@ async function handleSignup() {
     showTemporaryToast('Complete all signup fields to create your account.');
     return;
   }
-  try {
-    const credential = await createUserWithEmailAndPassword(auth, email, password);
-    await setDoc(doc(db, 'customers', credential.user.uid), {
-      name,
-      email: credential.user.email,
-      mobile,
-      createdAt: Date.now()
-    });
-    showTemporaryToast('Account created successfully. You are now logged in.');
-    document.getElementById('signupName').value = '';
-    document.getElementById('signupEmail').value = '';
-    document.getElementById('signupMobile').value = '';
-    document.getElementById('signupPassword').value = '';
-  } catch (error) {
-    console.error('Signup lookup failed:', error);
-    const message = error.code === 'auth/email-already-in-use'
-      ? 'An account already exists with that email.'
-      : 'Could not create the account. Check Firebase Authentication setup.';
-    showTemporaryToast(message);
+  const existing = await findAuthUser(email) || await findAuthUser(mobile);
+  if (existing) {
+    showTemporaryToast('An account already exists with that email or mobile.');
+    return;
   }
+  await addDoc(collection(db, 'customers'), { name, email, mobile, password });
+  showTemporaryToast('Account created successfully. You can now login.');
+  document.getElementById('signupName').value = '';
+  document.getElementById('signupEmail').value = '';
+  document.getElementById('signupMobile').value = '';
+  document.getElementById('signupPassword').value = '';
 }
 
 async function handleAdminLogin() {
   const username = document.getElementById('adminUsername').value.trim();
   const password = document.getElementById('adminPassword').value.trim();
-  const button = document.getElementById('adminLoginButton');
+  const credentials = await getAdminCredentials();
   if (!username || !password) {
     showTemporaryToast('Enter admin username and password.');
     return;
   }
-  try {
-    if (username.toLowerCase() !== ADMIN_USERNAME) {
-      showTemporaryToast('Admin login failed. Check username/password.');
-      return;
-    }
-    button.disabled = true;
-    button.textContent = 'Signing in...';
-    await withTimeout(
-      signInWithEmailAndPassword(auth, ADMIN_AUTH_EMAIL, password),
-      15000,
-      'Admin sign-in timed out. Check your internet connection and try again.'
-    );
+  if (username === credentials.username && password === credentials.password) {
     window.location.href = 'admin.html';
-  } catch (error) {
-    console.error('Admin login failed:', error);
-    showTemporaryToast(error.message.includes('timed out')
-      ? error.message
-      : 'Admin login failed. Check username/password.');
-  } finally {
-    button.disabled = false;
-    button.textContent = 'Admin login';
-  }
-}
-
-async function handleGoogleLogin() {
-  try {
-    await signInWithPopup(auth, new GoogleAuthProvider());
-    showTemporaryToast('Google sign-in successful.');
-  } catch (error) {
-    console.error('Google sign-in failed:', error);
-    showTemporaryToast('Google sign-in is unavailable. Enable it in Firebase Authentication.');
-  }
-}
-
-let phoneRecaptchaVerifier;
-
-async function handlePhoneLogin() {
-  const phoneNumber = document.getElementById('phoneLoginNumber').value.trim();
-  const button = document.getElementById('phoneLoginButton');
-  if (!/^\+[1-9]\d{7,14}$/.test(phoneNumber)) {
-    showTemporaryToast('Enter your phone number with country code, for example +919876543210.');
     return;
   }
+  showTemporaryToast('Admin login failed. Check username/password.');
+}
 
-  try {
-    if (!phoneRecaptchaVerifier) {
-      phoneRecaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' });
-      await phoneRecaptchaVerifier.render();
-    }
-    button.disabled = true;
-    button.textContent = 'Sending OTP...';
-    const confirmation = await signInWithPhoneNumber(auth, phoneNumber, phoneRecaptchaVerifier);
-    const code = window.prompt(`Enter the OTP sent to ${phoneNumber}.`);
-    if (!code) {
-      showTemporaryToast('OTP entry cancelled.');
-      return;
-    }
-    await confirmation.confirm(code);
-    showTemporaryToast('Phone number verified. You are now logged in.');
-  } catch (error) {
-    console.error('Phone sign-in failed:', error);
-    phoneRecaptchaVerifier?.clear();
-    phoneRecaptchaVerifier = null;
-    showTemporaryToast('Phone login failed. Enable Phone provider and check Firebase SMS settings.');
-  } finally {
-    button.disabled = false;
-    button.textContent = 'Send phone OTP';
+async function handleOtpLogin() {
+  const contact = document.getElementById('authContact').value.trim();
+  if (!contact) {
+    showTemporaryToast('Enter email or mobile to receive an OTP.');
+    return;
   }
+  const user = await findAuthUser(contact);
+  if (!user) {
+    showTemporaryToast('No user found for that email or mobile. Please sign up first.');
+    return;
+  }
+  const otp = String(Math.floor(100000 + Math.random() * 900000));
+  const entered = prompt(`Enter the OTP sent to ${contact}. (Simulated OTP: ${otp})`);
+  if (entered === otp) {
+    showTemporaryToast(`OTP verified. Welcome back, ${user.name}!`);
+  } else {
+    showTemporaryToast('OTP verification failed. Try again.');
+  }
+}
+
+function handleGoogleLogin() {
+  showTemporaryToast('Google login simulated. Welcome to Apni Dukan!');
 }
 
 async function init() {
-  // Keep the login controls usable even when a remote data request fails.
-  // Previously a Firestore permission error prevented every listener below
-  // from being registered, so the Sign up and Admin tabs appeared unclickable.
+  cachedSettings = await applyStoreSettings();
+  await renderProducts();
+  await renderTestimonials();
+
   const authForm = document.getElementById('userAuthForm');
   if (authForm) {
     authForm.addEventListener('submit', handleCustomerLogin);
@@ -762,20 +649,11 @@ async function init() {
   const adminLoginButton = document.getElementById('adminLoginButton');
   if (adminLoginButton) adminLoginButton.addEventListener('click', handleAdminLogin);
 
+  const otpLoginButton = document.getElementById('otpLoginButton');
+  if (otpLoginButton) otpLoginButton.addEventListener('click', handleOtpLogin);
+
   const googleLoginButton = document.getElementById('googleLoginButton');
   if (googleLoginButton) googleLoginButton.addEventListener('click', handleGoogleLogin);
-
-  const phoneLoginButton = document.getElementById('phoneLoginButton');
-  if (phoneLoginButton) phoneLoginButton.addEventListener('click', handlePhoneLogin);
-
-  try {
-    cachedSettings = await applyStoreSettings();
-    await renderProducts();
-    await renderTestimonials();
-  } catch (error) {
-    console.error('Store data could not be loaded:', error);
-    showTemporaryToast('Store data could not load. Firebase permissions need attention.');
-  }
 }
 
 init();
