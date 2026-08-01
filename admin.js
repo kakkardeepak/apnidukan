@@ -33,6 +33,9 @@ const defaultProducts = [
     title: 'Signature Sport Watch',
     category: 'Watches',
     audience: 'Men',
+    brand: 'Apni Dukan',
+    color: 'Black',
+    material: 'Leather',
     description: 'Sleek sport watch with premium leather strap and advanced features.',
     price: 2499,
     marketPrice: 3999,
@@ -44,6 +47,8 @@ const defaultProducts = [
     title: 'Urban Runner Sneakers',
     category: 'Footwear',
     audience: 'Men',
+    color: 'White',
+    material: 'Mesh',
     description: 'Comfortable and stylish sneakers crafted for city life.',
     price: 1799,
     marketPrice: 2999,
@@ -55,6 +60,8 @@ const defaultProducts = [
     title: 'Elegant Formal Shirt',
     category: 'Clothing',
     audience: 'Men',
+    color: 'White',
+    material: 'Cotton',
     description: 'Tailored formal shirt in premium cotton for every office meeting.',
     price: 899,
     marketPrice: 1599,
@@ -66,6 +73,8 @@ const defaultProducts = [
     title: 'Noise-Canceling Earbuds',
     category: 'Electronics',
     audience: 'Unisex',
+    color: 'Black',
+    material: 'Plastic',
     description: 'Wireless earbuds with long battery life and crisp audio.',
     price: 2199,
     marketPrice: 3499,
@@ -332,6 +341,8 @@ function clearProductForm() {
   document.getElementById('productCategory').value = 'Watches';
   document.getElementById('productBrand').value = '';
   document.getElementById('productSize').value = '';
+  document.getElementById('productColor').value = '';
+  document.getElementById('productMaterial').value = '';
   document.getElementById('productPrice').value = '';
   document.getElementById('productMarketPrice').value = '';
   document.getElementById('productQty').value = '';
@@ -480,6 +491,8 @@ function setupEvents() {
     const qty = Number(document.getElementById('productQty').value);
     const brand = document.getElementById('productBrand').value.trim();
     const size = document.getElementById('productSize').value.trim();
+    const color = document.getElementById('productColor').value.trim();
+    const material = document.getElementById('productMaterial').value.trim();
     const imageUrl = document.getElementById('productImage').value.trim();
     if (!title || !price || !marketPrice || !qty) {
       showToast('Please complete all required product fields.');
@@ -495,7 +508,7 @@ function setupEvents() {
         existingImage = existingProduct ? existingProduct.image : '';
       }
       const image = imageFileData || imageUrl || existingImage || 'https://placehold.co/600x600?text=Product';
-      const payload = { title, audience, category, brand, size, description, price, marketPrice, qty, image };
+      const payload = { title, audience, category, brand, size, color, material, description, price, marketPrice, qty, image };
       if (editingId) {
         await updateProductById(editingId, payload);
         showToast('✅ Saved to Firebase — product updated.');
@@ -652,6 +665,8 @@ function setupEvents() {
       document.getElementById('productCategory').value = product.category;
       document.getElementById('productBrand').value = product.brand || '';
       document.getElementById('productSize').value = product.size || '';
+      document.getElementById('productColor').value = product.color || '';
+      document.getElementById('productMaterial').value = product.material || '';
       document.getElementById('productPrice').value = product.price;
       document.getElementById('productMarketPrice').value = product.marketPrice;
       document.getElementById('productQty').value = product.qty;

@@ -10,6 +10,9 @@ const defaultProducts = [
     title: 'Signature Sport Watch',
     category: 'Watches',
     audience: 'Men',
+    brand: 'Apni Dukan',
+    color: 'Black',
+    material: 'Leather',
     description: 'Sleek sport watch with premium leather strap and advanced features.',
     price: 2499,
     marketPrice: 3999,
@@ -21,6 +24,8 @@ const defaultProducts = [
     title: 'Urban Runner Sneakers',
     category: 'Footwear',
     audience: 'Men',
+    color: 'White',
+    material: 'Mesh',
     description: 'Comfortable and stylish sneakers crafted for city life.',
     price: 1799,
     marketPrice: 2999,
@@ -32,6 +37,8 @@ const defaultProducts = [
     title: 'Elegant Formal Shirt',
     category: 'Clothing',
     audience: 'Men',
+    color: 'White',
+    material: 'Cotton',
     description: 'Tailored formal shirt in premium cotton for every office meeting.',
     price: 899,
     marketPrice: 1599,
@@ -43,6 +50,8 @@ const defaultProducts = [
     title: 'Noise-Canceling Earbuds',
     category: 'Electronics',
     audience: 'Unisex',
+    color: 'Black',
+    material: 'Plastic',
     description: 'Wireless earbuds with long battery life and crisp audio.',
     price: 2199,
     marketPrice: 3499,
@@ -278,25 +287,98 @@ function applyBrandTextStyle(style) {
   }
 }
 
+// Lets a shopper type "gshock watch", "mens watch", "women leather bag" etc.
+// and get every relevant result ranked best-first, instead of requiring the
+// exact phrase to appear verbatim in one field.
+const CATEGORY_ALIASES = {
+  shoe: 'Footwear', shoes: 'Footwear', sneaker: 'Footwear', sneakers: 'Footwear', footwear: 'Footwear',
+  watch: 'Watches', watches: 'Watches',
+  glass: 'Sunglasses', glasses: 'Sunglasses', sunglass: 'Sunglasses', sunglasses: 'Sunglasses', shade: 'Sunglasses', shades: 'Sunglasses',
+  bag: 'Handbags', bags: 'Handbags', handbag: 'Handbags', handbags: 'Handbags', purse: 'Handbags',
+  wallet: 'Wallets', wallets: 'Wallets',
+  belt: 'Belts', belts: 'Belts',
+  perfume: 'Perfume', perfumes: 'Perfume', fragrance: 'Perfume', scent: 'Perfume',
+  shirt: 'Clothing', shirts: 'Clothing', tshirt: 'Clothing', clothes: 'Clothing', clothing: 'Clothing', apparel: 'Clothing',
+  tie: 'Tie', ties: 'Tie',
+  brooch: 'Brooch', brooches: 'Brooch'
+};
+
+const AUDIENCE_ALIASES = {
+  men: 'Men', man: 'Men', mens: 'Men', boy: 'Men', boys: 'Men',
+  women: 'Women', woman: 'Women', womens: 'Women', girl: 'Women', girls: 'Women', ladies: 'Women', lady: 'Women',
+  kid: 'Kids', kids: 'Kids', child: 'Kids', children: 'Kids',
+  unisex: 'Unisex'
+};
+
+function buildProductSearchText(product) {
+  // Non-letters/numbers become spaces so "G-Shock" and "gshock" both line up
+  // with a plain word-substring check.
+  const spaced = [product.title, product.description, product.category, product.brand, product.size, product.audience, product.color, product.material]
+    .map(value => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' '))
+    .join(' ');
+  // A punctuation-free version too, so "gshock" also matches "g-shock" even
+  // when the shopper (or the product data) skips the hyphen/space entirely.
+  const compact = spaced.replace(/\s+/g, '');
+  return { spaced, compact };
+}
+
+function tokenizeQuery(query) {
+  return query.toLowerCase().split(/[^a-z0-9']+/).map(token => token.trim()).filter(Boolean);
+}
+
+function tokenMatchesProduct(token, product, searchText) {
+  if (searchText.spaced.includes(token) || searchText.compact.includes(token)) return true;
+  const singular = token.endsWith('s') && token.length > 3 ? token.slice(0, -1) : token;
+  if (singular !== token && (searchText.spaced.includes(singular) || searchText.compact.includes(singular))) return true;
+  const categoryAlias = CATEGORY_ALIASES[token] || CATEGORY_ALIASES[singular];
+  if (categoryAlias && String(product.category || '').toLowerCase() === categoryAlias.toLowerCase()) return true;
+  const audienceAlias = AUDIENCE_ALIASES[token] || AUDIENCE_ALIASES[singular];
+  if (audienceAlias && String(product.audience || '').toLowerCase() === audienceAlias.toLowerCase()) return true;
+  return false;
+}
+
+// Returns how many search tokens this product matched. 0 means "not relevant".
+function searchRelevanceScore(product, tokens) {
+  if (!tokens.length) return 1;
+  const searchText = buildProductSearchText(product);
+  return tokens.reduce((score, token) => score + (tokenMatchesProduct(token, product, searchText) ? 1 : 0), 0);
+}
+
 function getFilteredProducts(allProducts, settings) {
   const searchValue = document.getElementById('productSearch')?.value.trim().toLowerCase() || '';
+  const searchTokens = tokenizeQuery(searchValue);
   const selectedAudience = document.getElementById('filterAudience')?.value || '';
   const selectedCategory = document.getElementById('filterCategory')?.value || '';
   const selectedBrand = document.getElementById('filterBrand')?.value.trim().toLowerCase() || '';
   const selectedSize = document.getElementById('filterSize')?.value.trim().toLowerCase() || '';
+  const selectedColor = document.getElementById('filterColor')?.value.trim().toLowerCase() || '';
+  const selectedMaterial = document.getElementById('filterMaterial')?.value.trim().toLowerCase() || '';
   const minPrice = Number(document.getElementById('filterMinPrice')?.value || 0);
   const maxPrice = Number(document.getElementById('filterMaxPrice')?.value || 0);
 
-  return allProducts.filter(product => {
-    const matchesSearch = !searchValue || [product.title, product.description, product.category, product.brand, product.size, product.audience].some(field => String(field || '').toLowerCase().includes(searchValue));
-    const matchesAudience = !selectedAudience || String(product.audience || '').toLowerCase() === selectedAudience.toLowerCase();
-    const matchesCategory = !selectedCategory || product.category === selectedCategory;
-    const matchesBrand = !selectedBrand || String(product.brand || '').toLowerCase().includes(selectedBrand);
-    const matchesSize = !selectedSize || String(product.size || '').toLowerCase().includes(selectedSize);
-    const matchesMinPrice = !minPrice || product.price >= minPrice;
-    const matchesMaxPrice = !maxPrice || product.price <= maxPrice;
-    return matchesSearch && matchesAudience && matchesCategory && matchesBrand && matchesSize && matchesMinPrice && matchesMaxPrice;
-  });
+  const withScore = allProducts
+    .map(product => ({ product, score: searchRelevanceScore(product, searchTokens) }))
+    .filter(({ product, score }) => {
+      if (searchTokens.length && score === 0) return false;
+      const matchesAudience = !selectedAudience || String(product.audience || '').toLowerCase() === selectedAudience.toLowerCase();
+      const matchesCategory = !selectedCategory || product.category === selectedCategory;
+      const matchesBrand = !selectedBrand || String(product.brand || '').toLowerCase().includes(selectedBrand);
+      const matchesSize = !selectedSize || String(product.size || '').toLowerCase().includes(selectedSize);
+      const matchesColor = !selectedColor || String(product.color || '').toLowerCase().includes(selectedColor);
+      const matchesMaterial = !selectedMaterial || String(product.material || '').toLowerCase().includes(selectedMaterial);
+      const matchesMinPrice = !minPrice || product.price >= minPrice;
+      const matchesMaxPrice = !maxPrice || product.price <= maxPrice;
+      return matchesAudience && matchesCategory && matchesBrand && matchesSize && matchesColor && matchesMaterial && matchesMinPrice && matchesMaxPrice;
+    });
+
+  // Best matches (more matched tokens = more relevant) float to the top; when
+  // there's no exact phrase match, closely-related products still show up
+  // instead of an empty grid. Ties keep their original (newest-first) order.
+  if (searchTokens.length > 1) {
+    withScore.sort((a, b) => b.score - a.score);
+  }
+
+  return withScore.map(({ product }) => product);
 }
 
 let cachedSettings = null;
@@ -326,6 +408,8 @@ async function renderProducts() {
             <p>${product.description}</p>
             ${product.brand ? `<p class="product-detail">Brand: ${product.brand}</p>` : ''}
             ${product.size ? `<p class="product-detail">Size: ${product.size}</p>` : ''}
+            ${product.color ? `<p class="product-detail">Colour: ${product.color}</p>` : ''}
+            ${product.material ? `<p class="product-detail">Material: ${product.material}</p>` : ''}
           </div>
           <div>
             <div class="product-pricing">
