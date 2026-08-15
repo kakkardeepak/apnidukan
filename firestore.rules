@@ -2,6 +2,7 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+
     function signedIn() {
       return request.auth != null;
     }
@@ -10,7 +11,7 @@ service cloud.firestore {
       return signedIn() && request.auth.token.email == 'madaag1@admin.apnidukan.com';
     }
 
-    // Storefront data is public; only the authenticated administrator may edit it.
+    // Storefront data is public-readable; only the admin may write.
     match /products/{productId} {
       allow read: if true;
       allow write: if isAdmin();
@@ -30,13 +31,15 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
-    // Each signed-in customer can access only their own non-sensitive profile.
+    // Each customer can create their own profile doc (uid must match doc id)
+    // and read/update/delete only their own profile. Passwords are never stored here.
     match /customers/{customerId} {
-      allow create: if signedIn() && request.auth.uid == customerId;
+      allow create: if signedIn() && request.auth.uid == customerId
+                    && !('password' in request.resource.data);
       allow read, update, delete: if signedIn() && request.auth.uid == customerId;
     }
 
-    // Everything else, including legacy plaintext admin credentials, is private.
+    // Deny everything else — including legacy config/adminCredentials.
     match /{document=**} {
       allow read, write: if false;
     }

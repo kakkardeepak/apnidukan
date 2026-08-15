@@ -21,22 +21,28 @@
         </div>
       </div>
       <form class="search-bar" action="#collections">
-        <input type="search" placeholder="Search designer watches, footwear, electronics..." aria-label="Search Apni Dukan" />
+        <input id="headerSearch" type="search" placeholder="Search designer watches, footwear, electronics..." aria-label="Search Apni Dukan" />
         <button type="submit">Search</button>
       </form>
       <div class="header-actions">
-        <a class="header-link" href="#login">Sign in</a>
+        <button class="header-link" id="signInLink">Sign in</button>
         <a class="header-link" href="#support">Help</a>
         <a class="header-link header-cart" href="#collections">Cart</a>
-        <a id="headerInstagram" class="header-link header-social" href="https://instagram.com" target="_blank" rel="noopener noreferrer" title="Instagram">Instagram</a>
-        <a id="headerWhatsApp" class="header-link header-social" href="https://wa.me/919999999999" target="_blank" rel="noopener noreferrer" title="WhatsApp">WhatsApp</a>
+        <a id="headerInstagram" class="header-link header-social header-social-link" href="https://instagram.com" target="_blank" rel="noopener noreferrer" title="Instagram">Instagram</a>
+        <a id="headerWhatsApp" class="header-link header-social header-social-link" href="https://wa.me/919999999999" target="_blank" rel="noopener noreferrer" title="WhatsApp">WhatsApp</a>
       </div>
+      <!-- Hamburger toggle — visible on mobile only -->
+      <button id="menuToggle" class="menu-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="primaryNav">
+        <span class="hamburger-icon" aria-label="Open menu">
+          <span></span><span></span><span></span>
+        </span>
+      </button>
     </div>
-    <nav class="primary-nav">
+    <nav id="primaryNav" class="primary-nav" aria-label="Site navigation">
       <a href="#hero">Home</a>
       <a href="#collections">Best sellers</a>
       <div class="nav-dropdown">
-        <button class="nav-link dropdown-toggle" type="button">Categories</button>
+        <button class="nav-link dropdown-toggle" type="button" aria-haspopup="true" aria-expanded="false">Categories</button>
         <div class="dropdown-menu" id="navDropdownMenu">
           <div class="dropdown-column">
             <strong>By audience</strong>
@@ -62,6 +68,15 @@
       <a href="#feedback">Reviews</a>
       <a href="#support">Support</a>
       <a href="#collections">New arrivals</a>
+      <!-- Mobile-only action links (mirrors .header-actions) -->
+      <div class="nav-mobile-actions">
+        <div class="nav-mobile-divider"></div>
+        <button class="nav-mobile-link" id="signInLinkNav">Sign in</button>
+        <a class="nav-mobile-link" href="#support">Help</a>
+        <a class="nav-mobile-link" href="#collections">Cart</a>
+        <a id="navInstagram" class="nav-mobile-link" href="https://instagram.com" target="_blank" rel="noopener noreferrer">Instagram</a>
+        <a id="navWhatsApp" class="nav-mobile-link" href="https://wa.me/919999999999" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+      </div>
     </nav>
   </header>
 
@@ -89,11 +104,11 @@
   </div>
 
   <main>
-    <section id="hero" class="hero">
+    <!-- <section id="hero" class="hero">
       <div class="hero-copy">
         <div class="hero-tag">Since 2016 • Curated luxury for the modern wardrobe</div>
         <h2>Step into premium style with a wardrobe made to impress.</h2>
-        <p>Apni Dukan brings elegant menswear, women’s essentials, premium footwear, and luxe electronics together in one refined shopping experience.</p>
+        <p>Apni Dukan brings elegant menswear, women's essentials, premium footwear, and luxe electronics together in one refined shopping experience.</p>
         <div class="hero-actions">
           <a class="button button-primary" href="#collections">Shop Now</a>
           <a class="button button-secondary" href="https://wa.me/919999999999?text=Hello%20Apni%20Dukan,%20I%20want%20to%20order%20a%20product" target="_blank" rel="noopener noreferrer">Order on WhatsApp</a>
@@ -119,107 +134,24 @@
           </div>
         </div>
       </div>
-    </section>
+    </section> -->
 
-    <section id="login" class="section section-alt login-section">
-      <div class="section-head">
-        <p class="eyebrow">Login portal</p>
-        <h2>Customer signup, login, and secure admin access</h2>
-      </div>
-      <div class="login-card">
-        <div class="login-toggle">
-          <button type="button" class="tab-button active" data-mode="customer-login">Login</button>
-          <button type="button" class="tab-button" data-mode="customer-signup">Sign up</button>
-          <button type="button" class="tab-button" data-mode="admin-login">Admin</button>
-        </div>
-        <form id="userAuthForm">
-          <div class="form-row" data-mode="customer-login">
-            <label>
-              Email or mobile
-              <input id="authContact" type="text" placeholder="Enter email or mobile" autocomplete="username" />
-            </label>
-            <label>
-              Password
-              <input id="authPassword" type="password" placeholder="Enter password" autocomplete="current-password" />
-            </label>
-            <button class="button button-primary" type="submit">Customer login</button>
-            <div class="login-extra-actions">
-              <button type="button" class="button button-secondary" id="otpLoginButton">Login with OTP</button>
-              <button type="button" class="button button-secondary" id="googleLoginButton">Login with Google</button>
-            </div>
-          </div>
-          <div class="form-row hidden" data-mode="customer-signup">
-            <label>
-              Full name
-              <input id="signupName" type="text" placeholder="Enter full name" autocomplete="name" />
-            </label>
-            <label>
-              Email address
-              <input id="signupEmail" type="email" placeholder="name@example.com" autocomplete="email" />
-            </label>
-            <label>
-              Mobile number
-              <input id="signupMobile" type="tel" placeholder="+919876543210" autocomplete="tel" />
-            </label>
-            <label>
-              Password
-              <input id="signupPassword" type="password" placeholder="Create a password" autocomplete="new-password" />
-            </label>
-            <button class="button button-primary" type="button" id="signupButton">Create account</button>
-          </div>
-          <div class="form-row hidden" data-mode="admin-login">
-            <label>
-              Admin username
-              <input id="adminUsername" type="text" placeholder="Enter admin username" autocomplete="username" />
-            </label>
-            <label>
-              Admin password
-              <input id="adminPassword" type="password" placeholder="Enter admin password" autocomplete="current-password" />
-            </label>
-            <button class="button button-primary" type="button" id="adminLoginButton">Admin login</button>
-          </div>
-        </form>
-        <p class="login-note">Secure admin access is hidden by default. Customers can sign up, login, or use Google/OTP shortcuts.</p>
-      </div>
-    </section>
 
-    <section id="categories" class="section section-alt">
-      <div class="section-head">
-        <p class="eyebrow">Categories</p>
-        <h2>Shop by category</h2>
+    <section id="collections" class="section collections-section">
+      <div class="section-head collections-head">
+        <p class="eyebrow"><span class="live-dot" aria-hidden="true"></span>Featured collection</p>
+        <h2 class="collections-title">Best sellers &amp; latest arrivals</h2>
+        <p class="section-sub">Hand-picked luxury pieces — new stock added daily.</p>
       </div>
-      <div class="category-grid">
-        <button class="category-card category-action" data-filter-type="category" data-filter="Watches">
-          <h3>Watches</h3>
-          <p>Statement timepieces for formal and sport.</p>
+      <div class="filters-toggle-bar" id="filtersToggleBar">
+        <button type="button" class="filters-toggle-btn" id="filtersToggle" aria-expanded="false" aria-controls="filtersPanel">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+            <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/>
+          </svg>
+          Filters
+          <span class="filters-active-count" id="filtersActiveCount" hidden></span>
+          <span class="filters-toggle-arrow" aria-hidden="true">▾</span>
         </button>
-        <button class="category-card category-action" data-filter-type="category" data-filter="Footwear">
-          <h3>Footwear</h3>
-          <p>Sneakers, formals and athleisure for every pace.</p>
-        </button>
-        <button class="category-card category-action" data-filter-type="category" data-filter="Clothing">
-          <h3>Clothing</h3>
-          <p>Shirts, pants, suits and everyday wardrobe staples.</p>
-        </button>
-        <button class="category-card category-action" data-filter-type="category" data-filter="Sunglasses">
-          <h3>Sunglasses</h3>
-          <p>Designer shades with luxe finishes.</p>
-        </button>
-        <button class="category-card category-action" data-filter-type="category" data-filter="Perfume">
-          <h3>Perfume</h3>
-          <p>Signature fragrances for every occasion.</p>
-        </button>
-        <button class="category-card category-action" data-filter-type="category" data-filter="Accessories">
-          <h3>Accessories</h3>
-          <p>Belts, wallets, bags, ties and brooches.</p>
-        </button>
-      </div>
-    </section>
-
-    <section id="collections" class="section">
-      <div class="section-head">
-        <p class="eyebrow">Featured</p>
-        <h2>Best sellers & latest arrivals</h2>
       </div>
       <div class="filters-panel" id="filtersPanel">
         <div class="filter-group">
@@ -252,6 +184,7 @@
               <option value="Handbags">Handbags</option>
               <option value="Tie">Tie</option>
               <option value="Brooch">Brooch</option>
+              <option value="Electronics">Electronics</option>
               <option value="Other">Other</option>
             </select>
           </label>
@@ -279,6 +212,115 @@
       <div class="products-grid" id="productGrid"></div>
     </section>
 
+    <section id="categories" class="section categories-section">
+      <div class="section-head">
+        <p class="eyebrow">Browse by style</p>
+        <h2>Shop by category</h2>
+        <p class="section-sub">From everyday essentials to statement pieces — curated for every occasion.</p>
+      </div>
+      <div class="cat-grid">
+
+        <button class="cat-card category-action" data-filter-type="category" data-filter="Watches">
+          <div class="cat-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="26" height="26">
+              <circle cx="12" cy="12" r="8"/><polyline points="12 8 12 12 14.5 14.5"/>
+              <path d="M9.5 3.5h5M9.5 20.5h5"/>
+            </svg>
+          </div>
+          <div class="cat-body">
+            <h3>Watches</h3>
+            <p>Statement timepieces for every wrist</p>
+          </div>
+          <svg class="cat-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+
+        <button class="cat-card category-action" data-filter-type="category" data-filter="Footwear">
+          <div class="cat-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="26" height="26">
+              <path d="M3 16c1-5 4-9 9-9h1.5l4.5 4.5L17 16H3z"/>
+              <path d="M11 11l-2 5M14 11l1 5"/>
+            </svg>
+          </div>
+          <div class="cat-body">
+            <h3>Footwear</h3>
+            <p>Sneakers, formals &amp; athleisure</p>
+          </div>
+          <svg class="cat-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+
+        <button class="cat-card category-action" data-filter-type="category" data-filter="Clothing">
+          <div class="cat-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="26" height="26">
+              <path d="M3 5l4-1 2 3 3-1 3 1 2-3 4 1-2 4h-3v10H5V9H3z"/>
+            </svg>
+          </div>
+          <div class="cat-body">
+            <h3>Clothing</h3>
+            <p>Shirts, suits &amp; wardrobe staples</p>
+          </div>
+          <svg class="cat-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+
+        <button class="cat-card category-action" data-filter-type="category" data-filter="Sunglasses">
+          <div class="cat-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="26" height="26">
+              <circle cx="7.5" cy="13" r="3.5"/>
+              <circle cx="16.5" cy="13" r="3.5"/>
+              <path d="M4 13H3M21 13h-1M11 13h2M7.5 9.5l1-3h6l1 3"/>
+            </svg>
+          </div>
+          <div class="cat-body">
+            <h3>Sunglasses</h3>
+            <p>Designer shades with luxe finishes</p>
+          </div>
+          <svg class="cat-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+
+        <button class="cat-card category-action" data-filter-type="category" data-filter="Perfume">
+          <div class="cat-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="26" height="26">
+              <rect x="7" y="8" width="10" height="13" rx="2"/>
+              <path d="M10 8V5M14 8V5M10 5h4"/>
+              <path d="M7 12h10"/>
+              <path d="M16 3c1 0 2 .5 2 1.5S17 6 16 6"/>
+            </svg>
+          </div>
+          <div class="cat-body">
+            <h3>Perfume</h3>
+            <p>Signature fragrances for every mood</p>
+          </div>
+          <svg class="cat-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+
+        <button class="cat-card category-action" data-filter-type="category" data-filter="Accessories">
+          <div class="cat-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="26" height="26">
+              <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/>
+              <circle cx="7" cy="7" r="1.5" fill="currentColor" stroke="none"/>
+            </svg>
+          </div>
+          <div class="cat-body">
+            <h3>Accessories</h3>
+            <p>Belts, wallets, bags &amp; more</p>
+          </div>
+          <svg class="cat-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+
+      </div>
+    </section>
+
     <section id="feedback" class="section section-alt feedback-section">
       <div class="section-head">
         <p class="eyebrow">Customer Care</p>
@@ -286,15 +328,15 @@
       </div>
       <div class="feedback-grid">
         <article class="feedback-card">
-          <p>“Apni Dukan made buying premium formalwear effortless. The packaging and support were outstanding.”</p>
+          <p>"Apni Dukan made buying premium formalwear effortless. The packaging and support were outstanding."</p>
           <span>– Ananya, Mumbai</span>
         </article>
         <article class="feedback-card">
-          <p>“Fast WhatsApp ordering, great prices and the watch collection feels very luxury. Highly recommended.”</p>
+          <p>"Fast WhatsApp ordering, great prices and the watch collection feels very luxury. Highly recommended."</p>
           <span>– Rohit, Delhi</span>
         </article>
         <article class="feedback-card">
-          <p>“The admin portal is smooth for store updates — products, offers, and social links are easy to manage.”</p>
+          <p>"The admin portal is smooth for store updates — products, offers, and social links are easy to manage."</p>
           <span>– Apni Dukan Team</span>
         </article>
       </div>
@@ -360,6 +402,81 @@
       <p class="footer-note">Fast delivery • Secure payment • 24/7 support</p>
     </div>
   </footer>
+
+  <!-- Login / signup modal -->
+  <div id="loginModal" class="modal-overlay" hidden aria-modal="true" role="dialog" aria-label="Sign in">
+    <div class="modal-dialog">
+      <button class="modal-close" id="modalClose" aria-label="Close dialog">&#x2715;</button>
+      <div class="modal-head">
+        <p class="eyebrow">Login portal</p>
+        <h2>Sign in or create an account</h2>
+      </div>
+      <div class="login-card">
+        <!-- Logged-in state -->
+        <div id="authLoggedIn" class="auth-logged-in hidden">
+          <p class="auth-welcome">Welcome back, <strong id="authUserName"></strong>!</p>
+          <div class="auth-logged-in-actions">
+            <a id="authAdminLink" class="button button-secondary hidden" href="admin.html">Go to Admin Panel</a>
+            <button id="authLogoutButton" class="button button-ghost">Log out</button>
+          </div>
+        </div>
+        <!-- Tabs -->
+        <div class="login-toggle">
+          <button type="button" class="tab-button active" data-mode="customer-login">Login</button>
+          <button type="button" class="tab-button" data-mode="customer-signup">Sign up</button>
+          <button type="button" class="tab-button" data-mode="admin-login">Admin</button>
+        </div>
+        <form id="userAuthForm">
+          <div class="form-row" data-mode="customer-login">
+            <label>
+              Email address
+              <input id="authContact" type="email" placeholder="name@example.com" autocomplete="username" />
+            </label>
+            <label>
+              Password
+              <input id="authPassword" type="password" placeholder="Enter password" autocomplete="current-password" />
+            </label>
+            <button class="button button-primary" type="submit">Customer login</button>
+            <div class="login-extra-actions">
+              <button type="button" class="button button-secondary" id="googleLoginButton">Login with Google</button>
+              <button type="button" class="button button-secondary" id="otpLoginButton">Phone OTP</button>
+            </div>
+          </div>
+          <div class="form-row hidden" data-mode="customer-signup">
+            <label>
+              Full name
+              <input id="signupName" type="text" placeholder="Enter full name" autocomplete="name" />
+            </label>
+            <label>
+              Email address
+              <input id="signupEmail" type="email" placeholder="name@example.com" autocomplete="email" />
+            </label>
+            <label>
+              Mobile number (optional)
+              <input id="signupMobile" type="tel" placeholder="+919876543210" autocomplete="tel" />
+            </label>
+            <label>
+              Password (min 6 characters)
+              <input id="signupPassword" type="password" placeholder="Create a password" autocomplete="new-password" />
+            </label>
+            <button class="button button-primary" type="button" id="signupButton">Create account</button>
+          </div>
+          <div class="form-row hidden" data-mode="admin-login">
+            <label>
+              Admin username
+              <input id="adminUsername" type="text" placeholder="Enter admin username" autocomplete="username" />
+            </label>
+            <label>
+              Admin password
+              <input id="adminPassword" type="password" placeholder="Enter admin password" autocomplete="current-password" />
+            </label>
+            <button class="button button-primary" type="button" id="adminLoginButton">Admin login</button>
+          </div>
+        </form>
+        <p class="login-note">Customer login uses your email and password. Admin access requires Firebase Auth setup.</p>
+      </div>
+    </div>
+  </div>
 
   <script type="module" src="script.js"></script>
 </body>

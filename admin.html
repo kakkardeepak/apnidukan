@@ -10,6 +10,15 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body class="admin-body">
+
+  <!-- Auth guard overlay — hidden by admin.js once auth is confirmed -->
+  <div id="adminLoadingOverlay" class="admin-loading-overlay">
+    <div class="admin-loading-inner">
+      <div class="admin-loading-spinner"></div>
+      <p>Verifying admin access…</p>
+    </div>
+  </div>
+
   <header class="admin-header">
     <div class="admin-brand">
       <div class="logo-mark admin-logo-mark">
@@ -35,11 +44,15 @@
         <h1>Apni Dukan Store Manager</h1>
       </div>
     </div>
-    <a class="button button-ghost" href="index.html">View Storefront</a>
+    <div class="admin-header-actions">
+      <a class="button button-ghost" href="index.html">View Storefront</a>
+      <button class="button button-ghost" id="adminLogout">Log out</button>
+    </div>
   </header>
 
-  <main class="admin-main">
+  <main id="adminMain" class="admin-main" hidden>
     <section class="admin-panel">
+
       <div class="admin-section">
         <h2>Store Settings</h2>
         <form id="settingsForm" class="form-grid">
@@ -78,21 +91,21 @@
           </label>
           <label>
             Surface color
-            <input type="color" id="surfaceColor" value="#ffffff" />
+            <input type="color" id="surfaceColor" value="#0d111e" />
           </label>
           <label>
             Page background color
             <input type="color" id="backgroundColor" value="#050505" />
           </label>
           <label>
-            Store logo image
+            Store logo image <small>(max 200 KB)</small>
             <input type="file" id="logoUpload" accept="image/*" />
           </label>
           <div class="logo-preview">
             <p>Logo preview</p>
-            <img id="logoPreview" src="" alt="Logo preview" />
+            <img id="logoPreview" src="" alt="Logo preview" style="display:none" />
           </div>
-          <label class="checkbox-label">
+          <label class="checkbox-label span-full">
             <input type="checkbox" id="welcomeEnabled" />
             Enable welcome banner
           </label>
@@ -101,7 +114,7 @@
             <textarea id="welcomeMessage" rows="2" placeholder="Happy Diwali from Apni Dukan!"></textarea>
           </label>
           <label>
-            Welcome media (image or video)
+            Welcome media (image or video, max 1 MB)
             <input type="file" id="welcomeMediaUpload" accept="image/*,video/*" />
           </label>
           <div class="welcome-preview">
@@ -120,7 +133,7 @@
               <option value="modern">Modern luxe</option>
             </select>
           </label>
-          <button type="button" class="button button-primary" id="saveSettings">Save Settings</button>
+          <button type="button" class="button button-primary span-full" id="saveSettings">Save Settings</button>
         </form>
       </div>
 
@@ -128,18 +141,18 @@
         <h2>Admin account</h2>
         <form id="adminAccountForm" class="form-grid">
           <label>
-            New admin username
+            Admin display username
             <input type="text" id="newAdminUsername" placeholder="madaag1" />
           </label>
           <label>
             Current password
-            <input type="password" id="currentAdminPassword" placeholder="Current password" />
+            <input type="password" id="currentAdminPassword" placeholder="Current password" autocomplete="current-password" />
           </label>
           <label>
-            New password
-            <input type="password" id="newAdminPassword" placeholder="New password" />
+            New password (min 6 characters)
+            <input type="password" id="newAdminPassword" placeholder="New password" autocomplete="new-password" />
           </label>
-          <button type="button" class="button button-primary" id="saveAdminAccount">Update admin credentials</button>
+          <button type="button" class="button button-primary" id="saveAdminAccount">Update admin password</button>
         </form>
       </div>
 
@@ -147,8 +160,8 @@
         <h2>Products</h2>
         <form id="productForm" class="form-grid">
           <label>
-            Title
-            <input type="text" id="productTitle" placeholder="Premium Leather Watch" required />
+            Title <span class="required-star">*</span>
+            <input type="text" id="productTitle" placeholder="Premium Leather Watch" />
           </label>
           <label>
             Audience
@@ -173,6 +186,7 @@
               <option value="Tie">Tie</option>
               <option value="Brooch">Brooch</option>
               <option value="Accessories">Accessories</option>
+              <option value="Electronics">Electronics</option>
               <option value="Home">Home</option>
               <option value="Other">Other</option>
             </select>
@@ -186,24 +200,24 @@
             <input type="text" id="productSize" placeholder="9 / S / M / L" />
           </label>
           <label>
-            Sale price (₹)
-            <input type="number" id="productPrice" placeholder="1499" required />
+            Sale price (₹) <span class="required-star">*</span>
+            <input type="number" id="productPrice" placeholder="1499" min="1" />
           </label>
           <label>
-            Market Price (₹)
-            <input type="number" id="productMarketPrice" placeholder="2499" required />
+            Market price (₹) <span class="required-star">*</span>
+            <input type="number" id="productMarketPrice" placeholder="2499" min="1" />
           </label>
           <label>
-            Quantity Available
-            <input type="number" id="productQty" placeholder="25" required />
+            Quantity <span class="required-star">*</span>
+            <input type="number" id="productQty" placeholder="25" min="0" />
           </label>
           <label>
-            Product image
+            Product image <small>(max 400 KB)</small>
             <input type="file" id="productImageUpload" accept="image/*" />
           </label>
           <label>
-            Image URL (optional)
-            <input type="url" id="productImage" placeholder="https://via.placeholder.com/400" />
+            Image URL (alternative to file)
+            <input type="url" id="productImage" placeholder="https://example.com/image.jpg" />
           </label>
           <label class="span-full">
             Description
@@ -225,7 +239,7 @@
           </label>
           <label>
             Discount (%)
-            <input type="number" id="couponDiscount" placeholder="20" />
+            <input type="number" id="couponDiscount" placeholder="20" min="1" max="100" />
           </label>
           <div class="button-row span-full">
             <button type="button" class="button button-primary" id="generateCoupon">Generate Coupon</button>
@@ -238,12 +252,12 @@
         <h2>Customer Reviews</h2>
         <form id="testimonialForm" class="form-grid">
           <label>
-            Customer name
-            <input type="text" id="testimonialName" placeholder="Priya" required />
+            Customer name <span class="required-star">*</span>
+            <input type="text" id="testimonialName" placeholder="Priya" />
           </label>
           <label>
-            Location
-            <input type="text" id="testimonialLocation" placeholder="Bengaluru" required />
+            Location <span class="required-star">*</span>
+            <input type="text" id="testimonialLocation" placeholder="Bengaluru" />
           </label>
           <label>
             Rating
@@ -256,23 +270,22 @@
             </select>
           </label>
           <label>
-            Avatar image
+            Avatar image <small>(max 200 KB)</small>
             <input type="file" id="testimonialAvatarUpload" accept="image/*" />
           </label>
           <label>
-            Review image
+            Review image <small>(max 400 KB)</small>
             <input type="file" id="testimonialImageUpload" accept="image/*" />
           </label>
           <label class="span-full">
-            Review text
-            <textarea id="testimonialQuote" rows="4" placeholder="Customer feedback goes here" required></textarea>
+            Review text <span class="required-star">*</span>
+            <textarea id="testimonialQuote" rows="4" placeholder="Customer feedback goes here"></textarea>
           </label>
           <div class="button-row span-full">
             <button type="button" class="button button-primary" id="saveTestimonial">Add / Update Review</button>
             <button type="button" class="button button-ghost" id="clearTestimonial">Clear</button>
           </div>
         </form>
-        <div id="testimonialList" class="product-list"></div>
       </div>
 
       <div class="admin-section">
@@ -283,19 +296,21 @@
           <button type="button" class="button button-secondary" id="showPendingReviews">Pending</button>
           <button type="button" class="button button-secondary" id="showRejectedReviews">Rejected</button>
         </div>
+        <div id="testimonialList" class="product-list" style="margin-top:18px"></div>
       </div>
 
       <div class="admin-section">
         <h2>Product Catalog</h2>
         <div id="productList" class="product-list"></div>
       </div>
+
     </section>
   </main>
 
   <footer class="admin-footer">
-    <p>Store data is saved locally in your browser. Open this page anytime to update products, discount coupons, social links, and support information.</p>
+    <p>Store data is saved to Firestore and is live on the storefront immediately after saving.</p>
   </footer>
 
-  <script src="admin.js"></script>
+  <script type="module" src="admin.js"></script>
 </body>
 </html>

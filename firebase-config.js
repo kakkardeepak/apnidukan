@@ -1,14 +1,15 @@
-// Shared Firebase initialization for Apni Dukan
-// Loaded as an ES module by both admin.js and script.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getAuth,
   GoogleAuthProvider,
+  EmailAuthProvider,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
-  RecaptchaVerifier,
-  signInWithPhoneNumber,
+  signOut,
+  updatePassword,
+  updateProfile,
+  reauthenticateWithCredential,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
@@ -37,25 +38,15 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 
-// Firebase Authentication uses an email internally. The storefront maps the
-// case-insensitive admin username "Madaag1" to this private sign-in address.
-// Do not expose or store the admin password in source code or Firestore.
+// Admin identity constants. The Firebase Auth account for this email must be
+// created once via the Firebase Console (Authentication → Add user).
 export const ADMIN_USERNAME = 'madaag1';
 export const ADMIN_AUTH_EMAIL = 'madaag1@admin.apnidukan.com';
+
 export {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  setDoc,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  GoogleAuthProvider,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  RecaptchaVerifier,
-  signInWithPhoneNumber,
-  onAuthStateChanged
+  collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc,
+  GoogleAuthProvider, EmailAuthProvider,
+  createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  signInWithPopup, signOut, updatePassword, updateProfile,
+  reauthenticateWithCredential, onAuthStateChanged
 };
