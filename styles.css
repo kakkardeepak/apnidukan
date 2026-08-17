@@ -521,11 +521,6 @@ button, input, select, textarea {
   cursor: pointer;
 }
 
-/* ── Redesigned categories section ──────────────────────────────────────────── */
-.categories-section {
-  background: linear-gradient(180deg, rgba(255,255,255,.015) 0%, transparent 100%);
-}
-
 .section-sub {
   margin: 10px auto 0;
   color: var(--muted);
@@ -535,120 +530,69 @@ button, input, select, textarea {
   text-align: center;
 }
 
-.cat-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+/* ── Shop by category — horizontal pill link bar ─────────────────────────────── */
+.cat-links-bar {
+  display: flex;
+  align-items: center;
   gap: 14px;
+  padding: 14px 32px;
+  background: rgba(255,255,255,.02);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  border-top: 1px solid rgba(255,255,255,.04);
 }
 
-.cat-card {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 20px 22px;
-  border-radius: 22px;
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(255,255,255,.08);
-  text-align: left;
-  cursor: pointer;
-  transition: background .24s ease, border-color .24s ease, transform .24s ease, box-shadow .24s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.cat-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 0% 50%, rgba(212,175,55,.08) 0%, transparent 70%);
-  opacity: 0;
-  transition: opacity .28s ease;
-  pointer-events: none;
-}
-
-.cat-card:hover {
-  background: rgba(212,175,55,.07);
-  border-color: rgba(212,175,55,.38);
-  transform: translateY(-4px);
-  box-shadow: 0 22px 55px rgba(0,0,0,.18), 0 0 0 1px rgba(212,175,55,.12);
-}
-
-.cat-card:hover::before {
-  opacity: 1;
-}
-
-.cat-icon-wrap {
-  width: 54px;
-  height: 54px;
-  flex-shrink: 0;
-  border-radius: 16px;
-  background: rgba(212,175,55,.1);
-  border: 1px solid rgba(212,175,55,.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--accent);
-  transition: background .24s ease, border-color .24s ease, transform .24s ease;
-}
-
-.cat-card:hover .cat-icon-wrap {
-  background: rgba(212,175,55,.18);
-  border-color: rgba(212,175,55,.4);
-  transform: scale(1.06);
-}
-
-.cat-body {
-  flex: 1;
-  min-width: 0;
-}
-
-.cat-body h3 {
-  margin: 0 0 4px;
-  font-size: 1rem;
+.cat-links-label {
+  font-size: .68rem;
   font-weight: 700;
-  color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.cat-body p {
-  margin: 0;
-  font-size: .83rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
   color: var(--muted);
-  line-height: 1.4;
-}
-
-.cat-arrow {
+  white-space: nowrap;
   flex-shrink: 0;
-  color: rgba(255,255,255,.25);
-  transition: transform .22s ease, color .22s ease;
 }
 
-.cat-card:hover .cat-arrow {
+.cat-links-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 2px 0;
+}
+
+.cat-links-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.cat-link {
+  flex-shrink: 0;
+  padding: 7px 16px;
+  border-radius: 20px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.1);
+  color: var(--text);
+  font-size: .86rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .18s ease, border-color .18s ease, color .18s ease;
+}
+
+.cat-link:hover,
+.cat-link.active {
+  background: rgba(212,175,55,.12);
+  border-color: rgba(212,175,55,.38);
   color: var(--accent);
-  transform: translateX(5px);
 }
 
-@media (max-width: 900px) {
-  .cat-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 500px) {
-  .cat-grid {
-    grid-template-columns: 1fr;
+@media (max-width: 768px) {
+  .cat-links-bar {
+    padding: 12px 16px;
     gap: 10px;
   }
 
-  .cat-card {
-    padding: 16px 18px;
-  }
-
-  .cat-icon-wrap {
-    width: 46px;
-    height: 46px;
+  .cat-links-label {
+    display: none;
   }
 }
 

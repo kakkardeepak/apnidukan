@@ -424,10 +424,18 @@ function setupStorefrontFilters() {
       const filterType = button.dataset.filterType;
       const filterValue = button.dataset.filter;
       if (!filterType || !filterValue) return;
+      // Highlight active pill in the cat-links-bar
+      document.querySelectorAll('.cat-link').forEach(b => b.classList.remove('active'));
+      if (button.classList.contains('cat-link')) button.classList.add('active');
       updateFiltersFromAction(filterType, filterValue);
       event.preventDefault();
     });
   });
+
+  // Clear active pill when filters are cleared
+  document.getElementById('clearFilters')?.addEventListener('click', () => {
+    document.querySelectorAll('.cat-link').forEach(b => b.classList.remove('active'));
+  }, { capture: true });
 
   const dropdownMenu = document.getElementById('navDropdownMenu');
   if (dropdownMenu) {
